@@ -781,7 +781,10 @@ bloodhound
 
 ```
 # auth with smb 
-netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
+
+# auth with smb by kerberoas
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k
 
 # auth with winrm  
 netexec winrm  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
