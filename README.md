@@ -55,7 +55,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [netexec](#netexec)
 - [certipy](#certipy)
 - [bloodyAD](#bloodyAD)
-- [nmap](#nmap)
+- [useful command](#command)
 - 
 - [Useful Resources](#useful-resources)
 
@@ -762,12 +762,15 @@ sqlmap -u "http://www.example.com/?id=1" --os-shell
 
 
 ```
-## bloodhound 
+## command 
 
 ```
 # run nmap speed
 ports=$(nmap -p- --min-rate=1000 -T4 10.10.11.158 | grep ^[0-9] | cut -d '/' -f 1 | tr '\n' ',' | sed s/,$//)
 nmap -p$ports -sC -sV 10.10.11.158
+
+# command synch time ad
+sudo ntpdate dc.voleur.htb  
 
 ```
 ## bloodhound 
