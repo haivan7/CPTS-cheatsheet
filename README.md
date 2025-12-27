@@ -56,7 +56,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [certipy](#certipy)
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
-- [useful command](#command)
+- [useful command](#useful-command)
 - 
 - [Useful Resources](#useful-resources)
 
@@ -906,7 +906,7 @@ impacket-secretsdump -ntds ntds.dit -system SYSTEM -security SECURITY LOCAL
 
 
 ```
-## command 
+## useful-command 
 
 ```
 # run nmap speed
