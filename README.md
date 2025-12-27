@@ -770,7 +770,11 @@ ports=$(nmap -p- --min-rate=1000 -T4 10.10.11.158 | grep ^[0-9] | cut -d '/' -f 
 nmap -p$ports -sC -sV 10.10.11.158
 
 # command synch time ad
-sudo ntpdate dc.voleur.htb  
+sudo ntpdate dc.voleur.htb
+
+# command to download bloodyAD
+pip3 install bloodyad
+pip3 install --upgrade minikerberos
 
 ```
 ## bloodhound 
