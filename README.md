@@ -776,7 +776,7 @@ sudo ntpdate dc.voleur.htb
 ## bloodhound 
 
 ```
-# run bloodhound to colect data 
+# run bloodhound to colect data   ( command download : pip3 install bloodhound ) 
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip
 
 #  another run bloodhound ( recomment becase can colllect all certtemplate ) ( command download :   cargo install rusthound-ce  )
