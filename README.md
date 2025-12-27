@@ -779,7 +779,7 @@ sudo ntpdate dc.voleur.htb
 # run bloodhound to colect data 
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip
 
-#  another run bloodhound ( recomment becase can colllect all certtemplate ) 
+#  another run bloodhound ( recomment becase can colllect all certtemplate ) ( command download :   cargo install rusthound-ce  )
 rusthound-ce -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -z 
 
 # run neo4j
