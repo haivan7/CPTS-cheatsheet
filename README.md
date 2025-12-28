@@ -984,6 +984,9 @@ scp  svc_backup@dc.voleur.htb:/mnt/c/IT/* .
 # command scp upload all file in folder local to folder shares
 scp * svc_backup@dc.voleur.htb:/mnt/c/IT/
 
+# command smbclient to connect folder shares by auth kerberoas
+smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.voleur.htb/IT
+
 
 ```
 ## Useful Resources 
