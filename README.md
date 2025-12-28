@@ -937,6 +937,7 @@ sudo ntpdate dc.voleur.htb
 # command to generate hosts file 
 netexec smb 10.10.11.76 --generate-hosts-file hosts
 cat hosts /etc/hosts | sponge /etc/hosts
+( The file must have the following structure   :    10.10.11.76     DC.voleur.htb  voleur.htb  DC  ) 
 
 # auth with kerberoas in AD by netexec ( flag -k )  ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb) 
 sudo ntpdate dc.voleur.htb
