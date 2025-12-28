@@ -51,7 +51,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
 
-- [Bash Line Editing Shortcut](#Bash Line Editing Shortcut)
+- [Bash Line Editing Shortcut](#Bash-Line-Editing-Shortcut)
 - [bloodhound](#bloodhound)
 - [netexec](#netexec)
 - [certipy](#certipy)
@@ -763,7 +763,7 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 sqlmap -u "http://www.example.com/?id=1" --os-shell
 
 ```
-## Bash Line Editing Shortcuts 
+## Bash-Line-Editing-Shortcut
 
 ```
 Alt + D             : Xóa từ vị trí con trỏ đến hết từ hiện tại
