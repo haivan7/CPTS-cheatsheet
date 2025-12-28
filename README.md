@@ -779,6 +779,24 @@ Ctrl + U	        : Xóa sạch toàn bộ dòng lệnh (nếu bạn muốn viế
 ## bloodhound 
 
 ```
+# command download rusthound-ce
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+cargo --version
+sudo apt update
+sudo apt install libkrb5-dev clang -y
+cargo install rusthound-ce
+
+or
+
+sudo apt update
+sudo apt install cargo
+cargo install rusthound-ce
+
+or
+
+wget https://github.com/g0h4n/RustHound-CE/releases/download/v2.4.5/rusthound-ce-Linux-gnu-x86_64.tar.gz 
+
 # run bloodhound to colect data   ( command download : pip3 install bloodhound ) 
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip
 
