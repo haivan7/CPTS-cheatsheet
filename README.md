@@ -1034,7 +1034,7 @@ evil-winrm -i dc.voleur.htb -r voleur.htb
 
 below is file /etc/krb5.conf : 
 
-``````````````````````````````
+______________________________________
 [libdefaults]
     dns_lookup_kdc = false
     dns_lookup_realm = false
@@ -1050,7 +1050,7 @@ below is file /etc/krb5.conf :
 [domain_realm]
     .voleur.htb = VOLEUR.HTB
     voleur.htb = VOLEUR.HTB
-`````````````````````````````````
+______________________________________
 
 # command AD Recyclebin in powershell
 Get-ADOptionalFeature 'Recycle Bin Feature'
