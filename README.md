@@ -1126,6 +1126,9 @@ smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.vol
 netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dns-server 10.10.11.42 --collection all
 Step-to-escal
 
+# test RCE
+tcpdump -i tun0 icmp
+
 ```
 ## Step-to-escal
 ```
