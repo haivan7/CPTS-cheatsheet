@@ -1127,7 +1127,7 @@ netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dn
 Step-to-escal
 
 # test RCE
-tcpdump -i tun0 icmp
+sudo tcpdump -i tun0 icmp and not host 10.10.14.1
 
 ```
 ## Step-to-escal
