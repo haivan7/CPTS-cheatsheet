@@ -1129,6 +1129,9 @@ Step-to-escal
 # test RCE
 sudo tcpdump -i tun0 icmp and not host 10.10.14.1
 
+# Listenning correct in port 443 anh ip tun0 ( 10.10.14.4 ) 
+sudo nc -lvnp 443 -s 10.10.14.4
+
 ```
 ## Step-to-escal
 ```
