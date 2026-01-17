@@ -241,6 +241,15 @@ rpcclient -U "" <FQDN IP>
 
 # Enumerating SMB shares using null session authentication.
 crackmapexec smb <FQDN/IP> --shares -u '' -p '' --shares
+
+# Username enumeration using Impacket scripts.
+samrdump.py <FQDN/IP>
+
+# SMB enumeration using enum4linux.
+enum4linux-ng.py <FQDN/IP> -A
+
+# Enumerating SMB shares.
+smbmap -H <FQDN/IP>
 ```
 ##### NFS
 ```
@@ -260,6 +269,9 @@ dig any <domain.tld> @<nameserver>
 
 # AXFR request to the specific nameserver.
 dig axfr <domain.tld> @<nameserver>
+
+# Subdomain brute forcing.
+dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt inlanefreight.htb
 ```
 
 ##### IMAP POP3
@@ -280,7 +292,7 @@ openssl s_client -connect <FQDN/IP>:pop3s
 snmpwalk -v2c -c <community string> <FQDN/IP>
 
 # Bruteforcing community strings of the SNMP service.
-onesixtyone -c community-strings.list <FQDN/IP>
+onesixtyone -c /opt/useful/seclists/Discovery/SNMP/snmp.txt <FQDN/IP>
 
 # Bruteforcing SNMP service OIDs.
 braa <community string>@<FQDN/IP>:.1.*
@@ -301,6 +313,22 @@ msf6 auxiliary(scanner/ipmi/ipmi_dumphashes)
 ```
 # Enforce password-based authentication
 ssh <user>@<FQDN/IP> -o PreferredAuthentications=password
+```
+##### Windows Remote Management SSH
+```
+# Check the security settings of the RDP service.
+rdp-sec-check.pl <FQDN/IP>
+```
+##### Oracle TNS
+```
+# Perform a variety of scans to gather information about the Oracle database services and its components.
+./odat.py all -s <FQDN/IP>
+
+# Log in to the Oracle database.
+sqlplus <user>/<pass>@<FQDN/IP>/<db>
+
+# Upload a file with Oracle RDBMS.
+./odat.py utlfile -s <FQDN/IP> -d <db> -U <user> -P <pass> --sysdba --putFile C:\\insert\\path file.txt ./file.txt
 ```
 ## Password Attacks
 
@@ -1018,7 +1046,10 @@ impacket-GetUserSPNs -dc-ip 10.10.10.100 active.htb/SVC_TGS:GPPstillStandingStro
 searchsploit openssh 7.2
 
 # SID  domain enumeration by mssql  ( need credentials) 
-use auxiliary/admin/mssql/mssql_enum_domain_accounts 
+use auxiliary/admin/mssql/mssql_enum_domain_accounts
+
+# MSSQL Ping in Metasploit
+use scanner/mssql/mssql_ping
 
 ```
 ## smbclient
