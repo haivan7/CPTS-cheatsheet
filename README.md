@@ -58,8 +58,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [autobloodyAD](#autobloodyAD)
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
-- [smbclient](#smbclient)
 - [Metasploit](#Metasploit)
+- [smbclient](#smbclient)
+- [gobuster](#gobuster)
 - [Step to privilege escalation in AD](#Step-to-escal)
 - [useful command](#useful-command)
 - 
@@ -1013,6 +1014,9 @@ impacket-GetUserSPNs -dc-ip 10.10.10.100 active.htb/SVC_TGS:GPPstillStandingStro
 ## Metasploit
 
 ```
+# run searchsploit
+searchsploit openssh 7.2
+
 # SID  domain enumeration by mssql  ( need credentials) 
 use auxiliary/admin/mssql/mssql_enum_domain_accounts 
 
@@ -1031,6 +1035,24 @@ smbclient //10.129.6.20/Development -N
 prompt off
 recurse true
 mget *
+
+```
+## gobuster 
+
+```
+# Run a directory scan on a website
+gobuster dir -u http://10.10.10.121/ -w /usr/share/dirb/wordlists/common.txt
+
+# Run a sub-domain scan on a website
+gobuster dns -d inlanefreight.com -w /usr/share/SecLists/Discovery/DNS/namelist.txt
+
+
+```
+## whatweb  
+
+```
+# List details about the webserver/certificates
+whatweb 10.10.10.121
 
 ```
 ## useful-command 
@@ -1151,6 +1173,18 @@ KRB5CCNAME=Administrator.ccache  impacket-secretsdump -k dc.redelegate.vl
 
 
 
+```
+## Useful Resources To Local Windows Privilege Escalation
+
+https://lolbas-project.github.io/#
+
+```
+## Useful Resources
+```
+## Useful Resources 
+
+```
+## Useful Resources 
 
 ```
 ## Useful Resources 
