@@ -1077,6 +1077,9 @@ gobuster dir -u http://10.10.10.121/ -w /usr/share/dirb/wordlists/common.txt
 # Run a sub-domain scan on a website
 gobuster dns -d inlanefreight.com -w /usr/share/SecLists/Discovery/DNS/namelist.txt
 
+# Run a vhost scan on a website
+gobuster vhost -u http://inlanefreight.htb:81 -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-110000.txt --append-domain
+
 
 ```
 ## whatweb  
