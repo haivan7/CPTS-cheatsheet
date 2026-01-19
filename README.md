@@ -26,7 +26,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [IPMI](#ipmi)
     - [Linux Remote Management SSH](#linux-remote-management-ssh)
     - [Windows Remote Management SSH](#linux-remote-management-ssh)
-    - [Oracle TNS](#oracle-tns)-
+    - [Oracle TNS](#oracle-tns)
 - [File Transfers](#file-transfers)
     - [Windows File Transfer Methods](#windows-file-transfer-methods)
     - [Linux File Transfer Methods](#linux-file-transfer-methods)
@@ -337,6 +337,8 @@ sqlplus <user>/<pass>@<FQDN/IP>/<db>
 ./odat.py utlfile -s <FQDN/IP> -d <db> -U <user> -P <pass> --sysdba --putFile C:\\insert\\path file.txt ./file.txt
 ```
 ## File Transfers
+
+https://gist.github.com/HarmJ0y/bb48307ffa663256e239
 
 ##### Windows File Transfer Methods
 ```
