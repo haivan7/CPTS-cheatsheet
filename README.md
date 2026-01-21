@@ -40,7 +40,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
 - [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
-    - [Pass the Hash (PtH)](#pass-the-hash)
+    - [Pass the Hash (PtH)](#pass-the-hash-(pth))
     - [Pass the Ticket (PtT) from Windows](#pass-the-ticket-from-windows)
     - [Pass the Ticket (PtT) from Linux](#pass-the-ticket-from-linux)
     - [Pass the Certificate](#pass-the-certificate)
