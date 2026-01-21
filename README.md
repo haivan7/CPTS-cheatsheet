@@ -40,6 +40,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
     - [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
+    -- [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
     - [Attacking SQL](#attacking-sql)
