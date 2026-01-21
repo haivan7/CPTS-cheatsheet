@@ -482,6 +482,9 @@ netexec smb <ip> -u <username> -p <password> --ntds
 ```
 ##### Windows Local Password Attacks
 ```
+# Access the Credential Manager prompt to backup or restore saved credentials
+rundll32 keymgr.dll,KRShowKeyMgr
+
 # Enumerate credentials stored in the current user's profile
 cmdkey /list
 
