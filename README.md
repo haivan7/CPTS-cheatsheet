@@ -601,7 +601,11 @@ office2john.py Protected.docx > protected-docx.hash
 ```
 ##### Windows Lateral Movement Techniques
 ```
+# Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
+office2john.py Protected.docx > protected-docx.hash 
+```
 ###### Pass the Hash (PtH)
+```
 ```
 ## Attacking Common Services
 
