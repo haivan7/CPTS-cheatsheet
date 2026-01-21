@@ -39,6 +39,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credential Hunting In Network Traffic](#credential-hunting-in-network-traffic)
     - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
+    - [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
     - [Attacking SQL](#attacking-sql)
@@ -596,7 +597,11 @@ unshadow /tmp/passwd.bak /tmp/shadow.bak > /tmp/unshadowed.hashes
 hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.cracked
 
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
-office2john.py Protected.docx > protected-docx.hash
+office2john.py Protected.docx > protected-docx.hash  
+```
+##### Windows Lateral Movement Techniques
+```
+###### Pass the Hash (PtH)
 ```
 ## Attacking Common Services
 
