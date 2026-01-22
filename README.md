@@ -47,6 +47,8 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
     - [Attacking SQL](#attacking-sql)
+    - [Attacking RDP Services](#attacking-rdp-services)
+    - [Attacking DNS Services](#attacking-dns-services)
     - [Attacking Email Services](#attacking-email-services)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
