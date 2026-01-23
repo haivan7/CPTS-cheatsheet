@@ -62,6 +62,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [DNS Tunneling with Dnscat2](#DNS-Tunneling-with-Dnscat2)
     - [SOCKS5 Tunneling with Chisel](#SOCKS5-Tunneling-with-Chisel)
     - [ICMP Tunneling with SOCKS](#ICMP-Tunneling-with-SOCKS)
+    - [RDP and SOCKS Tunneling with SocksOverRDP](#RDP-and-SOCKS-Tunneling-with-SocksOverRDP)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
@@ -1110,7 +1111,12 @@ sudo ./ptunnel-ng -r10.129.202.64 -R22
 sudo ./ptunnel-ng -p10.129.202.64 -l2222 -r10.129.202.64 -R22
 
 # Enabling Dynamic Port Forwarding over SSH
-ssh -D 9050 -p2222 -lubuntu 127.0.0.1
+ssh -D 9050 -p2222 -lubuntu 127.0.0.1  
+```
+##### RDP and SOCKS Tunneling with SocksOverRDP
+```
+# Windows-based command used to register the SocksOverRDP-PLugin.dll. (https://github.com/nccgroup/SocksOverRDP)
+regsvr32.exe SocksOverRDP-Plugin.dll
 ```
 ## Active Directory
 
