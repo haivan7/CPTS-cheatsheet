@@ -1170,6 +1170,9 @@ sudo ip route add 172.16.5.0/24 dev ligolo    (done)         ( run in hacer shel
 # Setting Reverse Shell in proxy
 listener_add --addr 0.0.0.0:1234 --to 127.0.0.1:1234 --tcp   ( run in proxy)
 
+# Command need to triple pivot 
+listener_add --addr 0.0.0.0:11601 --to 127.0.0.1:11601       ( run in proxy)
+
 # setting to Access the Agent's own Localhost.
 sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shell)
 
