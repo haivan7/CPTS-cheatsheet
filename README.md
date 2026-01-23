@@ -52,7 +52,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking Email Services](#attacking-email-services)
 - [Pivoting, Tunneling, and Port Forwarding](#pivoting-tunneling-and-port-forwarding)
     - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
-    - [Remote / Reverse Port Forwarding with SSH](#remote-or-reverse-port-forwarding-with-ssh)
+    - [Remote/Reverse Port Forwarding with SSH](#remote-/-reverse-port-forwarding-with-ssh)
     - [Meterpreter Tunneling and Port Forwarding](#meterpreter-tunneling-and-port-forwarding)
     - [Socat Redirection with a Reverse Shell / Bind Shell](#Socat-Redirection-with-a-Reverse-Shell-or-Bind-Shell)
     - [SSH for Windows with Plink](#SSH-for-Windows-with-plink)
@@ -1007,7 +1007,7 @@ ssh -D 1080 ubuntu@<IPaddressofTarget>
 # SSH command used to create a reverse SSH tunnel from a target to an attack host. Traffic is forwarded on port 8080 on the attack host to port 80 on the target.
 ssh -R <InternalIPofPivotHost>:8080:0.0.0.0:80 ubuntu@<ipAddressofTarget> -vN
 ```
-##### Meterpreter Tunneling & Port Forwarding
+##### Meterpreter Tunneling and Port Forwarding
 ```
 # Meterpreter-based portfwd command that adds a forwarding rule to the current Meterpreter session. This rule forwards network traffic on port 3300 on the local machine to port 3389 (RDP) on the target. (Bind Shell)
 meterpreter > portfwd add -l 3300 -p 3389 -r <IPaddressofTarget>
