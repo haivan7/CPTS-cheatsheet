@@ -70,6 +70,10 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
     - [Password Spraying & Password Policies](#password-spraying-and-password-policies)
     - [Enumerating Disabling/Bypassing AV](#enumerating-and-bypassing-av)
+    - [Enumerating Security Controls](#Enumerating-Security-Controls)
+    - [Credentialed Enumeration From Linux](#Credentialed-Enumeration-From-Linux)
+    - [Credentialed Enumeration From Windows](#Credentialed-Enumeration-From-Windows)  
+    - [Credentialed Enumeration From Windows with PowerView](#Credentialed-Enumeration-From-Windows-with-PowerView)  
     - [Living Of The Land](#living-of-the-land)
     - [Kerberoasting](#kerberoasting)
     - [ACL Enumeration & Tactics](#acl-enumeration-and-tactics)
@@ -1350,6 +1354,91 @@ Find-AdmPwdExtendedRights
 
 # A LAPSToolkit function that searches for computers that have LAPS enabled, discover password expiration and can discover randomized passwords. Performed from a Windows-based host.
 Get-LAPSComputers
+```
+##### Enumerating Security Controls
+```
+# PowerShell cmd-let used to check the status of Windows Defender Anti-Virus from a Windows-based host.
+Get-MpComputerStatus
+
+# PowerShell cmd-let used to view AppLocker policies from a Windows-based host.
+Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+
+# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+$ExecutionContext.SessionState.LanguageMode
+
+# A LAPSToolkit function that discovers LAPS Delegated Groups from a Windows-based host.  (https://github.com/leoloobeek/LAPSToolkit)
+Find-LAPSDelegatedGroups
+
+# A LAPSTookit function that checks the rights on each computer with LAPS enabled for any groups with read access and users with All Extended Rights. Performed from a Windows-based host.
+Find-AdmPwdExtendedRights
+
+# A LAPSToolkit function that searches for computers that have LAPS enabled, discover password expiration and can discover randomized passwords. Performed from a Windows-based host.
+Get-LAPSComputers
+```
+##### Credentialed Enumeration - from Linux
+```
+# Enumerates the target Windows domain using valid credentials and lists shares & permissions available on each within the context of the valid credentials used and the target Windows host (-H). Performed from a Linux-based host.
+smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5
+
+# Enumerates the target Windows domain using valid credentials and performs a recursive listing (-R) of the specified share (SYSVOL) and only outputs a list of directories (--dir-only) in the share. Performed from a Linux-based host.
+smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5 -R SYSVOL --dir-only
+
+# Enumerates a target user account in a Windows domain using its relative identifier (0x457). Discovers user accounts in a target Windows domain and their associated relative identifiers (rid).  Performed from a Linux-based host.
+rpcclient -U "" -N 172.16.5.5
+rpcclient $> queryuser 0x457
+rpcclient $> enumdomusers
+
+# Used to enumerate the domain admins group (--da) using a valid set of credentials on a target Windows domain. Performed from a Linux-based host.
+python3 windapsearch.py --dc-ip 172.16.5.5 -u inlanefreight\wley -p transporter@4 --da
+
+# Used to perform a recursive search (-PU) for users with nested permissions using valid credentials. Performed from a Linux-based host.
+python3 windapsearch.py --dc-ip 172.16.5.5 -u inlanefreight\wley -p transporter@4 -PU
+```
+##### Credentialed Enumeration - from Windows
+```
+# PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+Get-Module
+
+# Loads the Active Directory PowerShell module from a Windows-based host.
+Import-Module ActiveDirectory
+
+# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+Get-ADDomain
+
+# PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+
+# PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
+Get-ADTrust -Filter * | select name
+
+# PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroup -Identity "Backup Operators"
+
+# PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroupMember -Identity "Backup Operators"
+```
+##### [Credentialed Enumeration - from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon)
+```
+# PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+Get-Module
+
+# Loads the Active Directory PowerShell module from a Windows-based host.
+Import-Module ActiveDirectory
+
+# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
+Get-ADDomain
+
+# PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+
+# PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
+Get-ADTrust -Filter * | select name
+
+# PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroup -Identity "Backup Operators"
+
+# PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
+Get-ADGroupMember -Identity "Backup Operators"
 ```
 ##### Living Of The Land
 ```
