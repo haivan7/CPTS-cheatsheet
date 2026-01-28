@@ -1374,7 +1374,7 @@ Find-AdmPwdExtendedRights
 # A LAPSToolkit function that searches for computers that have LAPS enabled, discover password expiration and can discover randomized passwords. Performed from a Windows-based host.
 Get-LAPSComputers
 ```
-##### Credentialed Enumeration - from Linux
+##### Credentialed Enumeration from Linux
 ```
 # Enumerates the target Windows domain using valid credentials and lists shares & permissions available on each within the context of the valid credentials used and the target Windows host (-H). Performed from a Linux-based host.
 smbmap -u forend -p Klmcargo2 -d INLANEFREIGHT.LOCAL -H 172.16.5.5
@@ -1393,7 +1393,7 @@ python3 windapsearch.py --dc-ip 172.16.5.5 -u inlanefreight\wley -p transporter@
 # Used to perform a recursive search (-PU) for users with nested permissions using valid credentials. Performed from a Linux-based host.
 python3 windapsearch.py --dc-ip 172.16.5.5 -u inlanefreight\wley -p transporter@4 -PU
 ```
-##### Credentialed Enumeration - from Windows
+##### Credentialed Enumeration from Windows
 ```
 # PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
 Get-Module
@@ -1428,7 +1428,7 @@ Get-ADGroupMember -Identity "Backup Operators"
 # running the SharpHound.exe collector
 .\SharpHound.exe -c All --zipfilename ILFREIGHT
 ```
-##### [Credentialed Enumeration - from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon) 
+##### [Credentialed Enumeration from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon) 
 ```
 # PowerView script used to append results to a CSV file. Performed from a Windows-based host.
 import-module .\PowerView.ps1
@@ -1649,6 +1649,72 @@ wmic group list /format:list
 
 # Dumps information about any system accounts that are being used as service accounts.
 wmic sysaccount list /format:list
+
+(Net Commands)
+
+# Display domain password & lockout policy
+net accounts /domain
+
+# List all users in the current domain
+net user /domain
+
+# Get detailed information for a specific domain user
+net user <username> /domain
+
+# List all groups in the current domain
+net group /domain
+
+# List all members of the Domain Admins group
+net group "Domain Admins" /domain
+
+# List all computers joined to the domain
+net group "domain computers" /domain
+
+# List all Domain Controllers in the network
+net group "Domain Controllers" /domain
+
+# Information about password requirements
+net accounts
+
+# Check local groups on the current host
+net localgroup
+
+# Check current shares
+net share
+# List members of the local Administrators group
+net localgroup administrators
+
+# View all available shared resources on the domain
+net view /domain
+
+# List shares available on a specific remote computer
+net view \\<computername> /all
+
+# Mount a network share to a local drive letter
+net use x: \\<computername>\<sharename>
+
+(Dsquery Commands)
+
+# List all users in the current domain (DN format)
+dsquery user
+
+# List all computers joined to the domain
+dsquery computer
+
+# List all objects in a specific path (Wildcard search)
+dsquery * "CN=Users,DC=INLANEFREIGHT,DC=LOCAL"
+
+# Find accounts that do not require a password (UAC flag 32)
+dsquery * -filter "(&(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=32))" -attr distinguishedName userAccountControl
+
+# Find all Domain Controllers (UAC flag 8192)
+dsquery * -filter "(userAccountControl:1.2.840.113556.1.4.803:=8192)" -attr sAMAccountName
+
+# Find users inactive for more than 4 weeks
+dsquery user -inactive 4
+
+# Find disabled user accounts
+dsquery user -disabled
 ```
 ##### Kerberoasting
 ```
