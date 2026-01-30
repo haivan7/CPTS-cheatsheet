@@ -2219,6 +2219,124 @@ $sid=Convert-NameToSid "Domain Users" Get-DomainGPO | Get-ObjectAcl | ?{$_.Secur
 # Converting GPO GUID to Name
 Get-GPO -Guid 7CA9C789-14CE-46E3-A722-83F4097AF532
 ```
+##### Domain Trusts Primer (The "Bridge" Between Domains)
+```
+____________________________________________
+(Trust Prerequisites & Definitions)
+____________________________________________
+
+# 1. Trust: A relationship that allows users in Domain A to access resources in Domain B.
+# 2. Trusted Domain (Miền được tin): The domain where the users reside (The "Guest").
+# 3. Trusting Domain (Miền tin tưởng): The domain that provides the resource (The "Host").
+# 4. Transitivity (Tính bắc cầu): 
+#    - Transitive: If A trusts B and B trusts C, then A trusts C (Like Parent-Child trusts).
+#    - Non-transitive: Only a direct relationship exists. No "friend of a friend" access.
+# 5. Direction (Hướng xác thực):
+#    - One-way: Users in Trusted domain can access Trusting domain, but not vice-versa.
+#    - Bidirectional: Users in both domains can access each other's resources.
+
+____________________________________________
+(Trust Types - Standard Classification)
+____________________________________________
+
+# 1. Parent-Child: Automatic 2-way transitive trust between a parent and its sub-domain.
+# 2. Tree-Root: 2-way transitive trust between a forest root and a new tree root in the same forest.
+# 3. Cross-link: (Shortcut Trust) A direct trust between two child domains in the same forest to speed up authentication.
+# 4. Forest Trust: A transitive trust between two different Forest Root domains (Cross-forest).
+# 5. External Trust: A non-transitive trust between two specific domains in different forests (High restriction).
+
+____________________________________________
+(Enumeration - From Windows Host)
+____________________________________________
+
+============================================
+(Using Built-in PowerShell AD Module)
+============================================
+
+# Import the module if not already loaded.
+Import-Module activedirectory
+
+# Enumerate all domain trust relationships (Direction, Type, Attributes).
+Get-ADTrust -Filter *
+
+# Check if a specific DC exists for the domain.
+netdom query /domain:inlanefreight.local dc
+
+# List workstations and servers in the domain to find new targets.
+netdom query /domain:inlanefreight.local workstation
+
+============================================
+(Using PowerView) (using https://github.com/PowerShellMafia/PowerSploit)
+============================================
+
+# Basic trust enumeration (Lists Source, Target, and Direction).
+Get-DomainTrust
+
+# Comprehensive mapping (Shows trusts from both sides' perspectives).
+Get-DomainTrustMapping
+
+# Enumerate users in the Trusted/Child domain to find admin accounts (_adm).
+Get-DomainUser -Domain LOGISTICS.INLANEFREIGHT.LOCAL | select SamAccountName
+
+____________________________________________
+(Key Indicators for Attackers)
+____________________________________________
+
+# - IntraForest = True: High potential for "SID History Injection" to compromise Parent.
+# - SIDFilteringQuarantined = False: Boundary check is OFF. Potential for cross-forest escalation.
+# - ForestTransitive = True: Opportunity to jump across multiple domains in the target forest.
+# - SID Filtering: A security mechanism (NOT a trust type) that prevents SID History Abuse by filtering out SIDs not belonging to the trusted domain.
+# - Transitivity: Determines if the trust "hops" to other domains (Transitive = Shared; Non-transitive = Direct only).
+# - Selective Authentication: Restricts access to specific servers/users instead of the entire domain.
+```
+##### BloodHound: Domain Trusts & Cross-Forest Analysis
+```
+____________________________________________
+(Data Collection - The First Step)
+____________________________________________
+
+# 1. Collect all data (including Trusts, Group Memberships, and ACLs).
+.\SharpHound.exe -c All --ZipFileName loot.zip
+
+# 2. Collect from a specific domain (if you have a foothold in a child domain).
+.\SharpHound.exe -d logistics.inlanefreight.local -c All
+
+____________________________________________
+(Standard Queries - Visualizing the Bridge)
+____________________________________________
+
+# 1. Map Domain Trusts: Right-click on any Domain Node -> "Map Domain Trusts".
+#    - Red Line: Indicates a trust relationship.
+#    - Direction: Arrows point TOWARDS the Trusting domain (Who provides resources).
+
+# 2. Find Foreign Group Members: Analysis Tab -> "Find Foreign Group Members".
+#    - Purpose: Finds users from Domain B who are in sensitive groups of Domain A.
+#    - Red Team Insight: These are your "entry points" into the target domain.
+
+# 3. Shortest Paths to Domain Admins: Analysis Tab -> "Shortest Paths to Domain Admins".
+#    - Look for paths that cross the red "TrustedBy" edges.
+
+____________________________________________
+(Custom Cypher Queries - Pro Level)
+____________________________________________
+
+# 1. List all Domain Trusts with Directions and Attributes:
+MATCH p=(n:Domain)-[:TrustedBy]->(m:Domain) RETURN p
+
+# 2. Find all users from other domains in the local "Domain Admins" group:
+MATCH (n:User)-[:MemberOf*1..]->(g:Group) 
+WHERE g.name STARTS WITH 'DOMAIN ADMINS' AND n.domain <> g.domain 
+RETURN n.name, g.name
+
+____________________________________________
+(Key Edges & Attack Vectors)
+____________________________________________
+
+# - [TrustedBy]: The core trust edge. Check properties for "IsTransitive" and "SidFilteringEnabled".
+# - [MemberOf] (Cross-domain): A user from Domain A has rights in Domain B.
+# - [AllowedToDelegate]: Can be abused for Constrained Delegation across trust boundaries.
+# - [Enterprise Admin]: Always the ultimate target in a Forest Root domain.
+```
 ##### Trust Relationships Child Parent Trusts
 ```
 # PowerShell cmd-let used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
