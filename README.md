@@ -1191,7 +1191,7 @@ sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shel
 # Command need to run  , ping , fping and nmap in pivot 
 for i in {1..254}; do ping -c 1 -W 1 172.16.5.$i | grep "from" & done
 
-fping -asgq 172.16.5.0/23
+fping -asgq 172.16.5.0/24
 
 nmap -sT -Pn --unprivileged --send-eth 172.16.6.45
 
@@ -3063,6 +3063,9 @@ sudo tcpdump -i tun0 icmp and not host 10.10.14.1
 
 # Listenning correct in port 443 anh ip tun0 ( 10.10.14.4 ) 
 sudo nc -lvnp 443 -s 10.10.14.4
+
+# RDP with share drive 
+xfreerdp /u:svc_sql /p:lucky7 /v:10.129.253.79:8888 /dynamic-resolution /drive:Shared,//home/htb-ac-1224655/
 
 ```
 ## Step-to-escal
