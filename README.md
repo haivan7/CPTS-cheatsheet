@@ -1153,9 +1153,13 @@ mkdir ligolo && cd ligolo
 wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_proxy_0.8.2_linux_amd64.tar.gz
 tar -xvf ligolo-ng_proxy_0.8.2_linux_amd64.tar.gz
 
-(Download Agent  for Linux)
+(Download Agent  for Windows)
 wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_agent_0.8.2_windows_amd64.zip
 unzip ligolo-ng_agent_0.8.2_windows_amd64.zip
+
+(Download Agent  for Linux)
+wget https://github.com/nicocha30/ligolo-ng/releases/download/v0.8.2/ligolo-ng_agent_0.8.2_linux_amd64.tar.gz
+tar -xvf  ligolo-ng_agent_0.8.2_linux_amd64.tar.gz
 
 # Configure the TUN Interface on the attacker's machine.
 sudo ip tuntap add user $(whoami) mode tun ligolo
