@@ -88,6 +88,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [BloodHound: Domain Trusts & Cross-Forest Analysis](#BloodHound:-Domain-Trusts-and-Cross-Forest-Analysis)
     - [Trust Relationships Child-Parent Trusts](#trust-relationships-child-parent-trusts)
     - [Trust Relationships Cross-Forest Trust](#Trust-Relationships-Cross-Forest-Trust)
+    - [AD Auditing Toolkit](#AD-Auditing-Toolkit)
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
 - [SQLMap](#sqlmap)
@@ -2292,7 +2293,7 @@ ____________________________________________
 # - Transitivity: Determines if the trust "hops" to other domains (Transitive = Shared; Non-transitive = Direct only).
 # - Selective Authentication: Restricts access to specific servers/users instead of the entire domain.
 ```
-##### BloodHound: Domain Trusts & Cross-Forest Analysis
+##### BloodHound: Domain Trusts and Cross-Forest Analysis
 ```
 ____________________________________________
 (Data Collection - The First Step)
