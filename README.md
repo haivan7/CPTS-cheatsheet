@@ -89,8 +89,12 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Trust Relationships Cross-Forest Trust](#Trust-Relationships-Cross-Forest-Trust)
     - [BloodHound: Domain Trusts & Cross-Forest Analysis](#BloodHound-to-enum-Domain-Trusts-and-Cross-Forest-Analysis)
     - [AD Auditing Toolkit](#AD-Auditing-Toolkit)
+- [Attacking Web Applications with Ffuf](#Attacking-Web-Applications-with-Ffuf) 
+      - [Ffuf](#Ffuf)
+      - [Wordlists and Custom Wordlists](#Wordlists-and-Custom-Wordlists)
 - [Login Brute Forcing](#login-brute-forcing)
     - [Hydra](#hydra)
+    - [Medusa](#medusa)
 - [SQLMap](#sqlmap)
 
 - [Bash Line Editing Shortcut](#Bash-Line-Editing-Shortcut)
@@ -2593,6 +2597,99 @@ ________________________________________________________________________________
 - Use Evidence from these tools to acquire backing/funding for security fixes.
 - Visualize attack paths to make reporting more convincing.
 ```
+## Attacking Web Applications with Ffuf
+
+##### Ffuf
+```
+# Directory Fuzzing - Find directories
+ffuf -w wordlist.txt:FUZZ -u http://SERVER_IP:PORT/FUZZ
+
+# Extension Fuzzing - Find file extensions (e.g. .php, .txt)
+ffuf -w wordlist.txt:FUZZ -u http://SERVER_IP:PORT/indexFUZZ
+
+# Page Fuzzing - Find specific pages
+ffuf -w wordlist.txt:FUZZ -u http://SERVER_IP:PORT/blog/FUZZ.php
+
+# Recursive Fuzzing - Scan deeper into subdirectories
+ffuf -w wordlist.txt:FUZZ -u http://SERVER_IP:PORT/FUZZ -recursion -recursion-depth 1 -e .php -v
+
+# Sub-domain Fuzzing - Discover subdomains
+ffuf -w wordlist.txt:FUZZ -u https://FUZZ.hackthebox.eu/
+
+# VHost Fuzzing - Identify virtual hosts (filter response size)
+ffuf -w wordlist.txt:FUZZ -u http://academy.htb:PORT/ -H 'Host: FUZZ.academy.htb' -fs xxx
+
+# Parameter Fuzzing (GET) - Find GET parameters
+ffuf -w wordlist.txt:FUZZ -u http://admin.academy.htb:PORT/admin/admin.php?FUZZ=key -fs xxx
+
+# Parameter Fuzzing (POST) - Find POST parameters
+ffuf -w wordlist.txt:FUZZ -u http://admin.academy.htb:PORT/admin/admin.php -X POST -d 'FUZZ=key' -H 'Content-Type: application/x-www-form-urlencoded' -fs xxx
+
+# Value Fuzzing - Find valid values for a parameter
+ffuf -w ids.txt:FUZZ -u http://admin.academy.htb:PORT/admin/admin.php -X POST -d 'id=FUZZ' -H 'Content-Type: application/x-www-form-urlencoded' -fs xxx
+```
+##### Wordlists and Custom Wordlists
+```
+____________________________________________________________________________________
+Wordlists
+____________________________________________________________________________________
+
+# Directory & Page Wordlist - Standard web discovery
+/opt/useful/seclists/Discovery/Web-Content/directory-list-2.3-small.txt
+
+# Extensions Wordlist - For fuzzing file types (.php, .aspx, .html)
+/opt/useful/seclists/Discovery/Web-Content/web-extensions.txt
+
+# Domain Wordlist - For sub-domain and VHost discovery
+/opt/useful/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+# Parameters Wordlist - For fuzzing GET/POST parameter names
+/opt/useful/seclists/Discovery/Web-Content/burp-parameter-names.txt
+
+# SecLists  a list of common usernames
+https://github.com/danielmiessler/SecLists/blob/master/Usernames/top-usernames-shortlist.txt
+
+# SecLists  a list of common passwords
+https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Common-Credentials/2023-200_most_used_passwords.txt
+
+____________________________________________________________________________________
+Custom Wordlists
+____________________________________________________________________________________
+
+=======================================
+Username Anarchy
+=======================================
+# Install Username Anarchy
+sudo apt install ruby -y
+git clone https://github.com/urbanadventurer/username-anarchy.git
+cd username-anarchy
+
+# Generate usernames for a specific target
+./username-anarchy Jane Smith > jane_usernames.txt
+
+# Use a file containing list of names as input
+./username-anarchy -i names.txt
+
+# List all available format plugins (firstlast, f.last, etc.)
+./username-anarchy -l
+
+# Generate usernames with a specific domain suffix
+./username-anarchy Jane Smith -@ example.com
+
+=======================================
+CUPP (Common User Passwords Profiler)
+=======================================
+# Install CUPP
+sudo apt install cupp -y
+
+# Start interactive mode to build a profile
+cupp -i
+
+# Example input fields:
+# > First Name, Surname, Nickname, Birthdate
+# > Partner's info, Child's info, Pet's name, Company name
+# > Keywords, Special characters, Numbers, Leet mode (Y/N)
+```
 ## Login Brute Forcing
 
 ##### Hydra
@@ -2602,6 +2699,30 @@ hydra -L wordlist.txt -P wordlist.txt -u -f SERVER_IP -s PORT http-get /
 
 # Login Form Brute Force - Static User, Pass Wordlist
 hydra -l admin -P wordlist.txt -f SERVER_IP -s PORT http-post-form "/login.php:username=^USER^&password=^PASS^:F=<form name='login'"
+
+# Used to brute-force login credentials for FTP services
+hydra -l admin -P /path/to/password_list.txt ftp://192.168.1.100
+```
+##### Medusa
+```
+# Install medusa
+sudo apt-get -y update
+sudo apt-get -y install medusa
+
+# SSH Brute Force - Single user, password wordlist, stop on success
+medusa -h SERVER_IP -u admin -P wordlist.txt -M ssh -f
+
+# FTP Brute Force - User list, password list, 5 parallel threads
+medusa -h SERVER_IP -U users.txt -P passwords.txt -M ftp -t 5
+
+# RDP Brute Force - Single user, password list
+medusa -h SERVER_IP -u Administrator -P passwords.txt -M rdp
+
+# HTTP Basic Auth - Brute force web login (GET method)
+medusa -h www.example.com -U users.txt -P passwords.txt -M http -m GET
+
+# Combo List Brute Force - Use a file with "user:pass" format
+medusa -h SERVER_IP -C credentials_combo.txt -M ssh
 ```
 
 ## SQLMap
