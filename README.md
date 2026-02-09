@@ -16,6 +16,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
   - [Evasion and Spoofing](#firewall-evasion-and-spoofing)
   - [Output](#output)
 - [Footprinting Services](#footprinting-services)
+    - [RPC](#rpc)
     - [FTP](#ftp)
     - [SMB](#smb)
     - [NFS](#nfs)
@@ -270,6 +271,14 @@ nmap 192.168.1.1 -oN scan.txt
 nmap 192.168.1.1 -oA scan
 ```
 ## Footprinting Services
+##### RPC
+```
+# Port 111 is the rpcbind service
+https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-rpcbind.html
+
+# Enum rpc information
+rpcinfo 10.129.203.101
+```
 ##### FTP
 ```
 # Connect to FTP
@@ -2798,7 +2807,7 @@ sudo gem install wpscan
 https://wpvulndb.com/ ( to get api and using with --api-token parameter )
 
 # Runs wpscan using the --enmuerate flag and --api-token parameter 
-sudo wpscan --url http://blog.inlanefreight.local --enumerate --api-token dEOFB<SNIP>
+sudo wpscan --url http://blog.inlanefreight.local --enumerate ap --api-token dEOFB<SNIP>
 
 # Runs wpscan and uses it to perform a password attack (--password-attack) with xmlrpc method 
 sudo wpscan --password-attack xmlrpc -t 20 -U john -P /usr/share/wordlists/rockyou.txt --url http://blog.inlanefreight.local
