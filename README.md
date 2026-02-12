@@ -1854,7 +1854,8 @@ ________________________________________________________________________________
 ============================================
 
 # Used to install Impacket from inside the directory that gets cloned to the attack host. Performed from a Linux-based host.
-gỉ clone https://github.com/fortra/impacket 
+git clone https://github.com/fortra/impacket
+cd impacket
 sudo python3 -m pip install .
 
 # Impacket tool used to get a list of SPNs on the target Windows domain from a Linux-based host.
