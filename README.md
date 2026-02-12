@@ -2971,6 +2971,10 @@ Ctrl + U	        : Xóa sạch toàn bộ dòng lệnh (nếu bạn muốn viế
 ## bloodhound 
 
 ```
+____________________________________________
+Install rusthound-ce or bloodhound-python
+____________________________________________
+
 # command download rusthound-ce
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
@@ -3007,6 +3011,38 @@ bloodhound
 
 # zip file json 
 zip bloodhound_data.zip *.json
+
+____________________________________________
+Install Bloodhound Docker
+____________________________________________
+
+# STEP 1: Install Docker Engine (if not already installed)
+sudo apt update && sudo apt install -y curl
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# STEP 2: Configure Permissions (to run without sudo)
+sudo usermod -aG docker $USER
+newgrp docker # Apply permissions immediately
+sudo service docker start
+
+# STEP 3: Download BloodHound CLI
+# Link: https://github.com/SpecterOps/bloodhound/releases
+curl -L https://github.com/SpecterOps/bloodhound/releases/latest/download/bloodhound-cli-linux-amd64 -o bloodhound-cli
+chmod +x bloodhound-cli
+
+# STEP 4: Deploy BloodHound CE (Automatically creates docker-compose and password)
+./bloodhound-cli install
+# STEP 5: Management (After installation)
+docker ps # Check containers (Neo4j, Postgres, API, UI)
+docker compose up -d # Restart after shutting down
+docker compose down # Stop all services
+
+# ACCESS INFORMATION:
+
+# URL: http://localhost:8080
+# Username: admin
+# Password: (Check terminal after running the 'install' command in step 4)
 
 ____________________________________________
 (Recon Tool Decision Tree)
