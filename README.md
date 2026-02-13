@@ -3041,6 +3041,13 @@ docker compose stop  # Stop all services
 docker compose down  # remove all container
 ./bloodhound-cli config get default_password  # get new password
 
+# STEP 6: Management with setting env (After installation)
+bloodhound-cli help
+bloodhound-cli up
+bloodhound-cli running
+bloodhound-cli resetpwd
+bloodhound-cli down
+
 # ACCESS INFORMATION:
 
 # URL: http://localhost:8080
