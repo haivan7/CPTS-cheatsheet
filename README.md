@@ -3035,8 +3035,11 @@ chmod +x bloodhound-cli
 ./bloodhound-cli install
 # STEP 5: Management (After installation)
 docker ps # Check containers (Neo4j, Postgres, API, UI)
+cd ~/TOOLS/bloodhound-cli
 docker compose up -d # Restart after shutting down
-docker compose down # Stop all services
+docker compose stop  # Stop all services
+docker compose down  # remove all container
+./bloodhound-cli config get default_password  # get new password
 
 # ACCESS INFORMATION:
 
