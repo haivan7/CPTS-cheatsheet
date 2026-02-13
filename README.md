@@ -3444,8 +3444,9 @@ sudo tcpdump -i tun0 icmp and not host 10.10.14.1
 # Listenning correct in port 443 anh ip tun0 ( 10.10.14.4 ) 
 sudo nc -lvnp 443 -s 10.10.14.4
 
-# RDP with share drive 
+# RDP with share drive or auth in domain and share clipboard
 xfreerdp /u:svc_sql /p:lucky7 /v:10.129.253.79:8888 /dynamic-resolution /drive:Shared,//home/htb-ac-1224655/
+xfreerdp /v:<IP_CUA_VM> /u:thm /p:Password1@ /d:lunar.eruca.com /dynamic-resolution +clipboard
 
 # Command psh to start process hiden
 Start-Process -FilePath "C:\Windows\System32\inetsrv\payload.exe" -WindowStyle Hidden
