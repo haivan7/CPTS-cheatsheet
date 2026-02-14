@@ -3356,6 +3356,88 @@ gobuster vhost -u http://inlanefreight.htb:81 -w /usr/share/seclists/Discovery/D
 whatweb 10.10.10.121
 
 ```
+## Burp Suite  
+
+```
+____________________________________________
+Install Burp Suite Community (CE)
+____________________________________________
+
+# command download Burp CE installer script
+wget "https://portswigger.net/burp/releases/download?product=community&version=2024.12.1&type=linux" -O burp_ce_installer.sh
+
+# give execution permission
+chmod +x burp_ce_installer.sh
+
+# run installer (follow GUI prompts)
+./burp_ce_installer.sh
+
+# run Burp CE (default install path)
+~/BurpSuiteCommunity/BurpSuiteCommunity &
+
+____________________________________________
+Install Burp Suite Professional (Loader)
+____________________________________________
+
+# STEP 1: Automatic Installation Script (Repo xiv3r)
+sudo apt update && sudo apt install -y wget
+wget -qO- https://raw.githubusercontent.com/xiv3r/Burpsuite-Professional/main/install.sh | sudo bash
+
+# STEP 2: Configure Java (Burp 2026 requires Java 17/21)
+# Ensure selection of OpenJDK 17 or 21
+sudo update-alternatives --config java
+
+# STEP 3: Initial Manual Activation (Run once)
+# Terminal 1 - Open Keygen:
+loader
+# Terminal 2 - Open Burp Pro:
+burpsuitepro
+# Procedure: Copy License from Loader -> Paste to Burp -> Manual Activation -> Copy Request from Burp -> Paste to Loader -> Copy Response from Loader -> Paste to Burp.
+
+# STEP 4: Create Permanent Alias (Skip license prompts & fix logs)
+echo "alias bpro='java --add-opens=java.desktop/javax.swing=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED -noverify -javaagent:\$HOME/Burpsuite-Professional/loader.jar -jar \$HOME/Burpsuite-Professional/burpsuite_pro_v2026.jar > /dev/null 2>&1 & disown'" >> ~/.bashrc
+source ~/.bashrc
+
+# STEP 5: Management
+bpro               # Start Burp Pro silently
+sudo killall -9 java # Kill all hung Burp/Java processes
+ss -lntp | grep 8080 # Check if Burp is listening
+
+____________________________________________
+Configure Proxy & CA Certificate
+____________________________________________
+
+# STEP 1: Configure FoxyProxy (Browser Side)
+# Title: Burp | Type: HTTP | Host: 127.0.0.1 | Port: 8080
+
+# STEP 2: Download CA Certificate
+# With Proxy ON in Firefox: visit http://burp
+# Click "CA Certificate" to download 'cacert.der'
+
+# STEP 3: Import to Firefox
+# Settings -> Privacy & Security -> View Certificates -> Authorities -> Import
+# CHECK: "Trust this CA to identify websites"
+
+____________________________________________
+(Burp Suite Decision Tree)
+____________________________________________
+
+# CASE 1: Standard Web Pentesting (Manual)
+# Use Proxy Intercept + Repeater. Intercept is ON to catch and modify requests.
+
+# CASE 2: Automated Vulnerability Scanning (Pro Only)
+# Right-click request in History -> Scan. Automated discovery of SQLi, XSS, etc.
+
+# CASE 3: Fuzzing & Brute Force (Intruder)
+# Positions tab -> Add §param§ -> Payloads tab -> Load wordlist. No rate-limit in Pro.
+
+# CASE 4: Fixing WSLg Display Issues (Black screen/Missing buttons)
+# Use software rendering for Java GUI if hardware acceleration fails
+LIBGL_ALWAYS_SOFTWARE=1 bpro
+
+# CASE 5: Fixing Scaling on High-Res Monitors
+# Add to command: -Dsun.java2d.uiScale=1.0 (or 2.0)
+```
 ## useful-command 
 
 ```
