@@ -3612,6 +3612,9 @@ xfreerdp /v:<IP_CUA_VM> /u:thm /p:Password1@ /d:lunar.eruca.com /dynamic-resolut
 # Command psh to start process hiden
 Start-Process -FilePath "C:\Windows\System32\inetsrv\payload.exe" -WindowStyle Hidden
 
+# Fuzz file 
+dirsearch -u http://10.48.166.13
+
 # Command RDP with rdesktop 
 rdesktop -g 100% 10.48.166.13
 
