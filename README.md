@@ -3031,8 +3031,9 @@ newgrp docker # Apply permissions immediately
 sudo service docker start
 
 # STEP 3: Download BloodHound CLI
-# Link: https://github.com/SpecterOps/bloodhound/releases
-curl -L https://github.com/SpecterOps/bloodhound/releases/latest/download/bloodhound-cli-linux-amd64 -o bloodhound-cli
+# Link: https://github.com/SpecterOps/bloodhound-cli/releases/tag/v0.2.0
+curl -L https://github.com/SpecterOps/bloodhound-cli/releases/download/v0.2.0/bloodhound-cli-linux-amd64.tar.gz
+tar -xvzf bloodhound-cli-linux-amd64.tar.gz
 chmod +x bloodhound-cli
 
 # STEP 4: Deploy BloodHound CE (Automatically creates docker-compose and password)
