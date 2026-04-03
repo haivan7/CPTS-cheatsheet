@@ -3032,7 +3032,7 @@ sudo service docker start
 
 # STEP 3: Download BloodHound CLI
 # Link: https://github.com/SpecterOps/bloodhound-cli/releases/tag/v0.2.0
-curl -L https://github.com/SpecterOps/bloodhound-cli/releases/download/v0.2.0/bloodhound-cli-linux-amd64.tar.gz
+curl -L https://github.com/SpecterOps/bloodhound-cli/releases/download/v0.2.0/bloodhound-cli-linux-amd64.tar.gz -o bloodhound-cli-linux-amd64.tar.gz
 tar -xvzf bloodhound-cli-linux-amd64.tar.gz
 chmod +x bloodhound-cli
 
