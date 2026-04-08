@@ -3110,6 +3110,8 @@ sudo cp krb5.conf /etc/krb5.conf
 
 # list users 
 netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
+or
+nxc ldap 172.16.139.3 -u divanov -p 'Dimitris2001' --users
 
 # Enumerating Logged-on users.
 netexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
