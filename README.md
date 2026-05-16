@@ -113,7 +113,6 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [smbclient](#smbclient)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
-- [whatweb](#whatweb)
 - [useful command](#useful-command)
 - [Step to privilege escalation in AD](#Step-to-escal)
 - [Useful Script To Local Windows Privilege Escalation](#Useful-Script-To-Local-Windows-Privilege-Escalation)
