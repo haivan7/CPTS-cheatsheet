@@ -1465,7 +1465,7 @@ Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincip
 Get-ADTrust -Filter * | select name
 
 # PowerShell cmd-let used to search for a specifc group (-Identity "Backup Operators"). Performed from a Windows-based host.
-Get-ADGroup -Identity "Backup Operators"
+Get-ADGroup -Identity "Backup Operators" -Properties *
 
 # PowerShell cmd-let used to discover the members of a specific group (-Identity "Backup Operators"). Performed from a Windows-based host.
 Get-ADGroupMember -Identity "Backup Operators"
