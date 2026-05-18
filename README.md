@@ -1243,6 +1243,9 @@ sudo ip link set ligolo2 up
 start --tun ligolo2  (proxy)
 
 sudo ip route add 172.16.6.0/24 dev ligolo2
+
+# Delete interface
+sudo ip link delete ligolo
 ```
 ## Active Directory
 
