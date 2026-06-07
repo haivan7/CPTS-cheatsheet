@@ -296,6 +296,8 @@ wget -m --no-passive ftp://anonymous:anonymous@<IP>
 ```
 ##### SMB
 ```
+# Quickly scan the network 192.168.50.0/24 to find the hostname and MAC address via the NetBIOS protocol (Windows).
+sudo nbtscan -r 192.168.50.0/24
 
 # Connect to a specific SMB share
 smbclient //<FQDN IP>/<share>
@@ -314,6 +316,25 @@ enum4linux-ng.py <FQDN/IP> -A
 
 # Enumerating SMB shares.
 smbmap -H <FQDN/IP>
+
+# Remotely enumerate user information via SAMR (Security Account Manager Remote) protocol using a valid document
+samrdump.py [domain]/[user]:[pass]@[ip]
+
+# Brute-force find username and group by querying the SID (Security Identifier) ​​number with a Guest account that doesn't require a password
+lookupsid.py guest@[ip] -no-pass
+
+# Download entire folder (Download Folder) in interactive shell (smbclient)
+smb> mask "" # Set an empty mask (default selects all files, does not filter by format)
+smb> recurse ON # Enable recursive mode (allows downloading of subfolders inside)
+smb> prompt OFF # Turn off confirmation (to automatically batch download without asking Y/N for each file)
+smb> mget * # Proceed to download all files and folders from the target machine to the local machine
+
+# Download a specific file remotely to your local machine via SMB using a verified account
+smbget smb://<target-ip>/somedir/example.txt -U username
+
+# Recursively download (-R) the entire remote directory to your local machine using a verified account
+smbget -R smb://<target-ip>/somedir -U username
+
 ```
 ##### NFS
 ```
@@ -333,6 +354,8 @@ dig any <domain.tld> @<nameserver>
 
 # AXFR request to the specific nameserver.
 dig axfr <domain.tld> @<nameserver>
+or
+dig AXFR @ns1.inlanefreight.htb inlanefreight.htb
 
 # Subdomain brute forcing.
 dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt inlanefreight.htb
@@ -352,6 +375,16 @@ openssl s_client -connect <FQDN/IP>:pop3s
 
 #### SNMP
 ```
+| OID (Object Identifier) |	Description  |
+| --- | --- |
+| 1.3.6.1.2.1.25.1.6.0	| System Processes| 
+| 1.3.6.1.2.1.25.4.2.1.2	| Running Programs| 
+| 1.3.6.1.2.1.25.4.2.1.4	| Processes Path| 
+| 1.3.6.1.2.1.25.2.3.1.4	| Storage Units| 
+| 1.3.6.1.2.1.25.6.3.1.2	| Software Name| 
+| 1.3.6.1.4.1.77.1.2.25	| User Accounts| 
+| 1.3.6.1.2.1.6.13.1.3	| TCP Local Ports| 
+
 # Querying OIDs using snmpwalk
 snmpwalk -v2c -c <community string> <FQDN/IP>
 
