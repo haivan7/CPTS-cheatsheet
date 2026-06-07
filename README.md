@@ -285,6 +285,10 @@ rpcinfo 10.129.203.101
 ```
 ##### FTP
 ```
+# File config
+cat /etc/vsftpd.conf
+cat /etc/vsftpd/vsftpd.conf
+
 # Connect to FTP
 ftp <IP>
 
@@ -293,6 +297,12 @@ nc -nv <IP> <PORT>
 
 # Download all available files on the target FTP server
 wget -m --no-passive ftp://anonymous:anonymous@<IP>
+
+# FTP - download all file
+wget -r --user='username' --password='password' ftp://<target-ip>/sample
+wget -m ftp://anonymous:anonymous@X.X.X.X
+wget -m --no-passive ftp://anonymous:anonymous@10.10.10.98 
+
 ```
 ##### SMB
 ```
@@ -359,6 +369,9 @@ dig AXFR @ns1.inlanefreight.htb inlanefreight.htb
 
 # Subdomain brute forcing.
 dnsenum --dnsserver 10.129.14.128 --enum -p 0 -s 0 -o subdomains.txt -f /opt/useful/seclists/Discovery/DNS/subdomains-top1million-110000.txt inlanefreight.htb
+
+# Perform a standard DNS scan on the target domain to find basic records such as A, AAAA, MX, NS, SOA, and check for Zone Transfer.
+dnsrecon -d megacorpone.com -t std
 ```
 
 ##### IMAP POP3
@@ -394,6 +407,32 @@ onesixtyone -c /opt/useful/seclists/Discovery/SNMP/snmp.txt <FQDN/IP>
 
 # Bruteforcing SNMP service OIDs.
 braa <community string>@<FQDN/IP>:.1.*
+
+# Collect a list of all running processes on the target machine
+snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.25.4.2.1.2
+
+# Collect a list of all local user accounts that exist on the target Windows system
+snmpwalk -c public -v1 192.168.50.151 1.3.6.1.4.1.77.1.2.25
+
+# Collect a list of all open TCP listening ports on the target machine
+snmpwalk -c public -v1 192.168.50.151 1.3.6.1.2.1.6.13.1.3
+
+### snmp-mibs Plugin convert OIDS to Strings
+# Step 1: Install the downloader package to download additional MIB database files
+sudo apt install snmp-mibs-downloader -y
+
+# Step 2: Download all standard MIB files from organizations (IETF, Cisco, Microsoft, etc.) to your local machine
+sudo download-mibs
+
+# Step 3: Open the system's SNMP configuration file to edit it
+sudo nano /etc/snmp/snmp.conf
+
+# Step 4: Disable the default MIB blocking command by adding a '#' before "mibs:" so the system automatically translates the numerical OID into legible text
+# Change the line: mibs:
+# To: #mibs:
+
+# Step 5: Run the snmpwalk command again (The result will now automatically translate complex OID strings into text such as 'sysDescr', 'hrSWInstalledName'...)
+snmpwalk -c public -v1 <target-ip>
 ```
 ##### MSSQL
 ```
