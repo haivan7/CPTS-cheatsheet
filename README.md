@@ -374,7 +374,7 @@ openssl s_client -connect <FQDN/IP>:pop3s
 ```
 
 #### SNMP
-```
+
 | OID (Object Identifier) |	Description  |
 | --- | --- |
 | 1.3.6.1.2.1.25.1.6.0	| System Processes| 
@@ -385,6 +385,7 @@ openssl s_client -connect <FQDN/IP>:pop3s
 | 1.3.6.1.4.1.77.1.2.25	| User Accounts| 
 | 1.3.6.1.2.1.6.13.1.3	| TCP Local Ports| 
 
+```
 # Querying OIDs using snmpwalk
 snmpwalk -v2c -c <community string> <FQDN/IP>
 
