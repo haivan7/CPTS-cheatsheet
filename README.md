@@ -2977,8 +2977,11 @@ cat web_discovery.xml | ./aquatone -nmap
 sudo gem install wpscan
 https://wpvulndb.com/ ( to get api and using with --api-token parameter )
 
-# Runs wpscan using the --enmuerate flag and --api-token parameter  and ap is all flag to enumerate all plugins
+# Runs wpscan using the --enumerate flag and --api-token parameter  and ap is all flag to enumerate all plugins
 sudo wpscan --url http://blog.inlanefreight.local --enumerate ap --api-token dEOFB<SNIP>
+
+# Runs wpscan ALL
+wpscan --url http://blog.inlanefreight.local  -e ap,u,vp,vt --plugins-detection aggressive --api-token  wdttECwDnORbnXyWxwZRAWmPhW57fSBa1wI3C47tkAQ --disable-tls-checks
 
 # Runs wpscan using the flag u to list user
 sudo wpscan -e u -t 500 --url http://ir.inlanefreight.local
