@@ -113,6 +113,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [enum4linux](#enum4linux)
 - [Metasploit](#Metasploit)
 - [smbclient](#smbclient)
+- [WebDAV](#WebDAV)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
 - [useful command](#useful-command)
@@ -3586,6 +3587,29 @@ smbclient \\\\172.16.7.3\\Department\ Shares -U 'inlanefreight.local\BR086' -c '
 prompt off
 recurse true
 mget *
+
+```
+## WebDAV
+
+```
+# Use Nmap to scan for WebDAV and enabled methods:
+nmap -p 80,443 --script http-webdav-scan --script-args http-webdav-scan.path=/ 192.168.109.122
+
+# Use curl command to check allowed Methods (See 'Allow:' or 'Public:' line)
+curl -i -X OPTIONS http://192.168.109.122/
+
+## command cadaver to connect WebDAV (same smbclient)
+# Anonymous connection
+cadaver http://192.168.109.122/
+
+# Connect to a specific directory with HTTPS
+cadaver https://example.com/webdav/
+
+# Automatic scan without account
+davtest -url http://192.168.109.122/
+
+# Automatic scan with verified account
+davtest -url http://192.168.109.122/ -auth fmcsorley:CrabSharkJellyfish192
 
 ```
 ## gobuster 
