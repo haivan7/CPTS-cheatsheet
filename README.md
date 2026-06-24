@@ -440,6 +440,7 @@ snmpwalk -c public -v1 <target-ip>
 ##### MSSQL
 ```
 impacket-mssqlclient <user>@<FQDN/IP> -windows-auth
+impacket-mssqlclient 'nagoya-industries.com/svc_mssql:Service1@240.0.0.1' -windows-auth
 ```
 ##### IPMI
 ```
