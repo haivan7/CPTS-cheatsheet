@@ -3188,7 +3188,7 @@ ffuf -w wordlist.txt:FUZZ -u http://admin.academy.htb:PORT/admin/admin.php -X PO
 ffuf -w ids.txt:FUZZ -u http://admin.academy.htb:PORT/admin/admin.php -X POST -d 'id=FUZZ' -H 'Content-Type: application/x-www-form-urlencoded' -fs xxx
 
 # Fuzzing with file req and with proxy
-ffuf -request request.txt -w Generic_UnionSelect.txt -t 5 -x https://127.0.0.1:8080
+ffuf -request request.txt -w Generic_UnionSelect.txt -t 5 -x https://127.0.0.1:8080 -enc FUZZ:urlencode  -request-proto http
 ```
 ##### Wordlists and Custom Wordlists
 ```
