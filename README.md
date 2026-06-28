@@ -3965,6 +3965,8 @@ smbclient -U 'voleur.htb/ryan.naylor%HollowOct31Nyt' --realm=voleur.htb //dc.vol
 # command smbclient to list and  connect folder shares by anonymous
 smbclient -L //10.129.6.20 -N
 smbclient //10.129.6.20/Development -N
+smbclient -L //192.168.160.55/ -U 'guest'%''
+smbclient //192.168.160.55/Shenzi -U 'guest'%''
 
 # command smbclient to recurse list  shares 
 smbclient \\\\172.16.7.3\\Department\ Shares -U 'inlanefreight.local\BR086' -c 'recurse;ls'
