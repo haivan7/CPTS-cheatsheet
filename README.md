@@ -4550,3 +4550,5 @@ https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20an
 [Ghostpack-CompiledBinaries](https://github.com/r3motecontrol/Ghostpack-CompiledBinaries)
 
 [BloodHound Cypher Cheatsheet](https://hausec.com/2019/09/09/bloodhound-cypher-cheatsheet/)
+
+[Potatoes - Windows Privilege Escalation](https://jlajara.gitlab.io/Potatoes_Windows_Privesc)
