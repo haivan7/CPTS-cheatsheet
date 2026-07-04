@@ -4085,6 +4085,11 @@ nmap -p 80,443 --script http-webdav-scan --script-args http-webdav-scan.path=/ 1
 # Use curl command to check allowed Methods (See 'Allow:' or 'Public:' line)
 curl -i -X OPTIONS http://192.168.109.122/
 
+## command wsgidav to Create WebDAV (same smbclient)
+# Create Anonymous connection
+sudo apt install python3-wsgidav
+wsgidav --host=0.0.0.0 --port=80 --auth=anonymous --root /home/sherlock-parrot/OSCP/Syllabus/Client-side-Attacks/Windows-library-files
+
 ## command cadaver to connect WebDAV (same smbclient)
 # Anonymous connection
 cadaver http://192.168.109.122/
@@ -4097,6 +4102,8 @@ davtest -url http://192.168.109.122/
 
 # Automatic scan with verified account
 davtest -url http://192.168.109.122/ -auth fmcsorley:CrabSharkJellyfish192
+
+
 
 ```
 ## gobuster 
