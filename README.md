@@ -119,6 +119,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [WebDAV](#WebDAV)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
+- [SysReptor](#SysReptor)
 - [useful command](#useful-command)
 - [Step to privilege escalation in AD](#Step-to-privilege-escalation-in-AD)
 - [Attack Active Directory Certificate Services - AD CS](#Attack-Active-Directory-Certificate-Services---AD-CS)
@@ -4128,6 +4129,37 @@ gobuster vhost -u http://inlanefreight.htb:81 -w /usr/share/seclists/Discovery/D
 ```
 # List details about the webserver/certificates
 whatweb 10.10.10.121
+
+```
+## SysReptor  
+
+```
+# Dừng toàn bộ SysReptor
+cd ~/sysreptor/deploy
+docker compose down
+
+# Chạy lại
+cd ~/sysreptor/deploy
+docker compose up -d
+
+
+# Check status
+docker ps | grep sysreptor
+
+# Check health
+curl http://127.0.0.1:8000/api/public/utils/healthcheck/
+# → {"database":true,"migrations":true}
+
+# Bash command in docker sysreptor-app 
+docker exec -it sysreptor-app bash
+
+# change pass in docker sysreptor-app bash
+python3 manage.py changepassword sherlock
+
+# login 
+http://127.0.0.1:8000/login/local/
+username: sherlock
+password: sysreptor@2024!
 
 ```
 ## Burp Suite  
