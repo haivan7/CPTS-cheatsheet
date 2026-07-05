@@ -4134,14 +4134,13 @@ whatweb 10.10.10.121
 ## SysReptor  
 
 ```
-# Dừng toàn bộ SysReptor
+# Stop all SysReptor
 cd ~/sysreptor/deploy
 docker compose down
 
-# Chạy lại
+# Run again
 cd ~/sysreptor/deploy
 docker compose up -d
-
 
 # Check status
 docker ps | grep sysreptor
@@ -4150,13 +4149,13 @@ docker ps | grep sysreptor
 curl http://127.0.0.1:8000/api/public/utils/healthcheck/
 # → {"database":true,"migrations":true}
 
-# Bash command in docker sysreptor-app 
+# Bash command in docker sysreptor-app
 docker exec -it sysreptor-app bash
 
 # change pass in docker sysreptor-app bash
 python3 manage.py changepassword sherlock
 
-# login 
+# login
 http://127.0.0.1:8000/login/local/
 username: sherlock
 password: sysreptor@2024!
