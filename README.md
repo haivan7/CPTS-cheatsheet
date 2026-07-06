@@ -1163,6 +1163,9 @@ unshadow /tmp/passwd.bak /tmp/shadow.bak > /tmp/unshadowed.hashes
 # Uses Hashcat in conjunction with a wordlist to crack the unshadowed hashes and outputs the cracked hashes to a file called unshadowed.cracked.
 hashcat -m 1800 -a 0 /tmp/unshadowed.hashes rockyou.txt -o /tmp/unshadowed.cracked
 
+# Uses john to crack hash when have 2 file /etc/passwd and /etc/shadow in path execute john
+john unshadow --wordlist=rockyou.txt
+
 # Runs Office2john.py against a protected .docx file and converts it to a hash stored in a file called protected-docx.hash.
 office2john.py Protected.docx > protected-docx.hash
 
