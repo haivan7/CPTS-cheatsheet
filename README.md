@@ -3980,6 +3980,7 @@ smbclient //192.168.160.55/Shenzi -U 'guest'%''
 
 # Command coonect wwith pass and port
 smbclient -p 4455 -L //192.168.50.63/ -U hr_admin --password=Welcome1234
+smbclient -p 4455 //192.168.50.63/scripts -U hr_admin --password=Welcome1234
 
 # command smbclient to recurse list  shares 
 smbclient \\\\172.16.7.3\\Department\ Shares -U 'inlanefreight.local\BR086' -c 'recurse;ls'
