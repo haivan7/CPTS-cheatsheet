@@ -1589,8 +1589,8 @@ plink -D 9050 ubuntu@<IPaddressofTarget>
 sudo apt-get install sshuttle
 
 # Runs sshuttle, connects to the target host, and creates a route to the 172.16.5.0 network so traffic can pass from the attack host to hosts on the internal network (172.16.5.0).
-sudo sshuttle -r ubuntu@10.129.202.64 172.16.5.0/23 -v
-sudo sshuttle -r database_admin@192.168.50.63:2222 10.4.50.0/24 -H
+sudo sshuttle -r ubuntu@10.129.202.64 172.16.5.0/23 -H -v
+sudo sshuttle -r database_admin@192.168.50.63:2222 10.4.50.0/24 172.16.50.0/24 -H -v
 ```
 ##### Web Server Pivoting with Rpivot
 ```
