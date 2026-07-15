@@ -474,8 +474,9 @@ mysql -u usertest
 # Connect via TCP, password required
 mysql -h 127.0.0.1 -u usertest2 -p
 
-# Connect via TCP, password required , specific port
+# Connect via TCP, password required , specific port , skil ssl
 mysql -h 127.0.0.1 -P 3306 -u usertest2 -p
+mysql -u BitForgeAdmin -h 192.168.137.186 -p --skip-ssl
 
 ****************************************
 ## Remote (% - any IP)
