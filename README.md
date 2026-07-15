@@ -4220,6 +4220,7 @@ open /var/www/html/config.php
 
 # Port forwarding
 portfwd host:port<-|->host:port>          # local & remote port forwarding
+portfwd 127.0.0.1:9000 <- 127.0.0.1:9000  ( forward port 9000 in victim to parrot)
 
 # Open the downloaded file using the default local app
 open /var/www/html/config.php
