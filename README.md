@@ -122,6 +122,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [Penelope](#Penelope)
 - [WebDAV](#WebDAV)
 - [patator](#patator)
+- [git-dumper](#git-dumper)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
 - [SysReptor](#SysReptor)
@@ -4344,8 +4345,19 @@ patator http_fuzz \
 --rate-limit=2            # Limit the request rate/second — avoid triggering lockout or WAF
 -l /tmp/patator.log # Write logs to a file for later review
 
+```
+## [git-dumper](https://github.com/arthaud/git-dumper)
+```
+# Dump all file in .git in website
+git-dumper http://bitforge.lab/.git/ bitforge-results-git
+or
+git_dumper.py http://bitforge.lab/.git/ bitforge-results-git
 
+# Check log
+git log
 
+# Check commit
+git show eaf6c81951775e4202e40762b3300cc936cf4df1
 
 
 ```
