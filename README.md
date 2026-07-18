@@ -123,6 +123,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
 - [WebDAV](#WebDAV)
 - [patator](#patator)
 - [git-dumper](#git-dumper)
+- [hashid](#hashid)
+- [hash-identifier](#hash-identifier)
+- [mdxfind](#mdxfind)
 - [Burp Suite](#Burp-Suite)
 - [whatweb](#whatweb)
 - [SysReptor](#SysReptor)
@@ -4359,6 +4362,42 @@ git log
 # Check commit
 git show eaf6c81951775e4202e40762b3300cc936cf4df1
 
+```
+## [hashid](https://www.kali.org/tools/hashid/)
+```
+# Check hash
+hashid "hash_in_here"
+
+# Check hash and print command jonh to crack
+hashid "hash_in_here" -j
+
+```
+## [hash-identifier](https://www.kali.org/tools/hash-identifier/)
+```
+# Check hash
+hash-identifier
+
+```
+## [mdxfind](https://www.techsolvency.com/pub/bin/mdxfind/)
+```
+# Install mdxfind
+wget https://www.techsolvency.com/pub/bin/mdxfind/mdxfind.static -O mdxfind
+chmod +x mdxfind 
+
+# Syntax for cracking mixed hash lists (Testing MD5, SHA1, NTLM only) with dictionaries
+mdxfind -h '^(SHA1|MD5|NTLM)$' -f cac-chuoi-hash.txt tu-dien.txt
+
+# Syntax for "blind" cracking (Testing ALL types of algorithms without salt, iterating 1 to 5 times)
+mdxfind -h ALL -h '!salt,!user,!crypt' -i 5 -f unknown.txt /usr/share/wordlists/rockyou.txt
+
+# sample check crack hash MD5 with salt
+echo "YOUR_SALT_HERE" > salt.txt
+echo "wazkowski" > pass.txt 
+echo "a2b4e80cd640aaa6e417febe095dcbfc" | ./mdxfind -h 'MD5' -s salt.txt pass.txt -i 5
+
+# crack hash MD5 with salt
+echo "YOUR_SALT_HERE" > salt.txt
+echo "844ffc2c7150b93c4133a6ff2e1a2dba" | ./mdxfind -h 'MD5PASSSALT' -s salt.txt /usr/sharewordlists/rockyou.txt -i 2
 
 ```
 ## gobuster 
