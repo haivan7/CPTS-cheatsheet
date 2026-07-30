@@ -1573,7 +1573,7 @@ https://offsec.almond.consulting/authenticating-with-certificates-when-pkinit-is
 https://specterops.io/wp-content/uploads/sites/3/2022/06/Certified_Pre-Owned.pdf
 
 ```
-##### Pass the Certificate
+##### Quick Reference — Decision Tree
 ```
 Have credentials?
 │
