@@ -2100,6 +2100,8 @@ id            (View information about the user running the agent)
 listener_list (Listing listener have add )
 start
 kill          (Disconnect a specific agent)
+interface_create --name ligolo
+route_add --name ligolo --route 10.10.119.0/24
 
 # Add a ligolo route on the attacker's machine.
 sudo ip route add 172.16.5.0/24 dev ligolo    (done)         ( run in hacer shell)
