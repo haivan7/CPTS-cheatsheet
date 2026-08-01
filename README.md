@@ -4126,6 +4126,9 @@ netexec smb  dc01.fluffy.htb -u 'p.agila' -p 'prometheusx-303'  --users
 or
 nxc ldap 172.16.139.3 -u divanov -p 'Dimitris2001' --users
 
+# list machines
+nxc ldap 10.10.172.250 -u 'kiosk' -p 'XEwUS^9R2Gwt8O914' -M dump-computers
+
 # Enumerating Logged-on users.
 netexec smb 10.10.110.0/24 -u administrator -p 'Password123!' --loggedon-users
 
