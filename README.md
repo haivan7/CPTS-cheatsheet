@@ -457,6 +457,8 @@ snmpwalk -c public -v1 <target-ip>
 ```
 impacket-mssqlclient <user>@<FQDN/IP> -windows-auth
 impacket-mssqlclient 'nagoya-industries.com/svc_mssql:Service1@240.0.0.1' -windows-auth
+impacket-mssqlclient  -hashes :5e782f064d94c51ec97f0973b2c543e8  -port 14330   administrator@192.168.56.104 -windows-auth
+
 
 -- === Basic Info ===
 SELECT @@VERSION;
