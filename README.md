@@ -457,6 +457,36 @@ snmpwalk -c public -v1 <target-ip>
 ```
 impacket-mssqlclient <user>@<FQDN/IP> -windows-auth
 impacket-mssqlclient 'nagoya-industries.com/svc_mssql:Service1@240.0.0.1' -windows-auth
+
+-- === Basic Info ===
+SELECT @@VERSION;
+SELECT @@SERVERNAME;
+SELECT SYSTEM_USER;        -- Current SQL user
+SELECT IS_SRVROLEMEMBER('sysadmin');  -- 1 = YES
+
+-- === List databases ===
+SELECT name FROM master.dbo.sysdatabases;
+
+-- === List tables trong DB ===
+USE <database_name>;
+SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES;
+
+-- === List SQL users ===
+SELECT name, type_desc, is_disabled 
+FROM master.sys.server_principals 
+WHERE type IN ('S','U','G');
+
+-- === Check sysadmin members ===
+SELECT name FROM master.sys.server_principals
+WHERE IS_SRVROLEMEMBER('sysadmin', name) = 1;
+
+-- === Check linked servers ===
+SELECT name, data_source FROM sys.servers WHERE is_linked = 1;
+
+-- === Check xp_cmdshell status ===
+SELECT value FROM sys.configurations 
+WHERE name = 'xp_cmdshell';
+
 ```
 ##### MySQL
 ```
