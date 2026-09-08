@@ -482,6 +482,10 @@ WHERE type IN ('S','U','G');
 SELECT name FROM master.sys.server_principals
 WHERE IS_SRVROLEMEMBER('sysadmin', name) = 1;
 
+-- === Check IMPERSONATE users ===
+SELECT * FROM sys.server_permissions WHERE permission_name = 'IMPERSONATE';
+SELECT principal_id, name, type_desc FROM sys.server_principals WHERE principal_id IN (266, 267);
+
 -- === Check linked servers ===
 SELECT name, data_source FROM sys.servers WHERE is_linked = 1;
 
