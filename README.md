@@ -4058,7 +4058,10 @@ https://github.com/dirkjanm/BloodHound.py
 bloodhound-python -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -dc 'dc01.fluffy.htb' -c all -ns 10.10.11.69 --zip --kerberos
 
 #  another run bloodhound ( recomment becase can colllect all certtemplate ) ( command download :   cargo install rusthound-ce  or wget https://github.com/g0h4n/RustHound-CE/releases/download/v2.4.5/rusthound-ce-Linux-gnu-x86_64.tar.gz )
-rusthound-ce -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -i 10.49.177.199 -z 
+rusthound-ce -d fluffy.htb -u 'p.agila' -p 'prometheusx-303' -i 10.49.177.199 -z
+
+# run SharpHound to colect data
+.\SharpHound.exe -c All -d inlanefreight.local --ldapusername derek.walker --ldappassword 'h4cknd0c0zwhYN07:)' --zipfilename output.zip
 
 # run neo4j
 sudo neo4j console
