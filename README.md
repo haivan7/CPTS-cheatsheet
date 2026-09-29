@@ -4077,6 +4077,16 @@ bloodhound
 zip bloodhound_data.zip *.json
 
 ____________________________________________
+Install Bloodhound Docker fast
+____________________________________________
+
+sudo apt update && sudo apt install -y docker.io docker-compose-v2
+sudo systemctl start docker && sudo systemctl enable docker
+wget https://github.com/SpecterOps/bloodhound-cli/releases/latest/download/bloodhound-cli-linux-amd64.tar.gz
+tar -xvzf bloodhound-cli-linux-amd64.tar.gz
+./bloodhound-cli install
+
+____________________________________________
 Install Bloodhound Docker
 ____________________________________________
 
