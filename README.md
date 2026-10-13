@@ -4312,6 +4312,15 @@ python3 autobloodyAD.py
 ## bloodyAD
 
 ```
+## Install bloodyAD 
+# Installation of python packages on different virtual environments
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+#  Install bloodyAD using the command uv
+uv tool install --python 3.13 git+https://github.com/CravateRouge/bloodyAD
+
+
+
 # adding the p.agila user to the Service Accounts group
 bloodyAD -u p.agila -p prometheusx-303 -d fluffy.htb --host dc01.fluffy.htb add groupMember 'service accounts' p.agila
 
